@@ -16,8 +16,8 @@ import java.util.Set;
 
 import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.commons.jpa.EntityManager;
+import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.commons.util.KapuaExceptionUtils;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
@@ -37,13 +37,11 @@ import org.eclipse.kapua.service.authorization.shiro.AuthorizationEntityManagerF
  * @since 1.0
  *
  */
-public class RoleServiceImpl implements RoleService
-{
+public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role create(RoleCreator roleCreator)
-        throws KapuaException
-    {
+            throws KapuaException {
         ArgumentValidator.notNull(roleCreator, "roleCreator");
         ArgumentValidator.notEmptyOrNull(roleCreator.getName(), "roleCreator.name");
         ArgumentValidator.notNull(roleCreator.getRoles(), "roleCreator.permissions");
@@ -65,16 +63,56 @@ public class RoleServiceImpl implements RoleService
             role = RoleDAO.create(em, roleCreator);
 
             em.commit();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             em.rollback();
             throw KapuaExceptionUtils.convertPersistenceException(e);
-        }
-        finally {
+        } finally {
             em.close();
         }
 
         return role;
+    }
+
+    @Override
+    public Role update(Role role)
+            throws KapuaException {
+        // Validation of the fields
+        ArgumentValidator.notNull(role.getId().getId(), "id");
+        ArgumentValidator.notNull(role.getScopeId().getId(), "accountId");
+        ArgumentValidator.notEmptyOrNull(role.getName(), "name");
+        ArgumentValidator.match(role.getName(), ArgumentValidator.NAME_REGEXP, "name");
+
+        //
+        // Check Access
+        KapuaLocator locator = KapuaLocator.getInstance();
+        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
+        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
+        authorizationService.checkPermission(permissionFactory.newPermission(RoleDomain.ROLE, Actions.write, role.getScopeId()));
+
+        //
+        // Do update
+        Role roleUpdated = null;
+        EntityManager em = AuthorizationEntityManagerFactory.getEntityManager();
+        try {
+
+            Role currentRole = RoleDAO.find(em, role.getId());
+            if (currentRole == null) {
+                throw new KapuaEntityNotFoundException(Role.TYPE, role.getId());
+            }
+
+            em.beginTransaction();
+            RoleDAO.update(em, role);
+            em.commit();
+
+            roleUpdated = RoleDAO.find(em, role.getId());
+        } catch (Exception pe) {
+            em.rollback();
+            throw KapuaExceptionUtils.convertPersistenceException(pe);
+        } finally {
+            em.close();
+        }
+
+        return roleUpdated;
     }
 
     @Override
@@ -96,20 +134,17 @@ public class RoleServiceImpl implements RoleService
             em.beginTransaction();
             RoleDAO.delete(em, roleId);
             em.commit();
-        }
-        catch (KapuaException e) {
+        } catch (KapuaException e) {
             em.rollback();
             throw KapuaExceptionUtils.convertPersistenceException(e);
-        }
-        finally {
+        } finally {
             em.close();
         }
     }
 
     @Override
     public Role find(KapuaId scopeId, KapuaId roleId)
-        throws KapuaException
-    {
+            throws KapuaException {
         ArgumentValidator.notNull(scopeId, "accountId");
         ArgumentValidator.notNull(roleId, "roleId");
 
@@ -126,11 +161,9 @@ public class RoleServiceImpl implements RoleService
         EntityManager em = AuthorizationEntityManagerFactory.getEntityManager();
         try {
             role = RoleDAO.find(em, roleId);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw KapuaExceptionUtils.convertPersistenceException(e);
-        }
-        finally {
+        } finally {
             em.close();
         }
         return role;
@@ -138,8 +171,7 @@ public class RoleServiceImpl implements RoleService
 
     @Override
     public RoleListResult query(KapuaQuery<Role> query)
-        throws KapuaException
-    {
+            throws KapuaException {
         ArgumentValidator.notNull(query, "query");
         ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
@@ -156,11 +188,9 @@ public class RoleServiceImpl implements RoleService
         EntityManager em = AuthorizationEntityManagerFactory.getEntityManager();
         try {
             result = RoleDAO.query(em, query);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw KapuaExceptionUtils.convertPersistenceException(e);
-        }
-        finally {
+        } finally {
             em.close();
         }
 
@@ -169,8 +199,7 @@ public class RoleServiceImpl implements RoleService
 
     @Override
     public long count(KapuaQuery<Role> query)
-        throws KapuaException
-    {
+            throws KapuaException {
         ArgumentValidator.notNull(query, "query");
         ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
@@ -187,11 +216,9 @@ public class RoleServiceImpl implements RoleService
         EntityManager em = AuthorizationEntityManagerFactory.getEntityManager();
         try {
             count = RoleDAO.count(em, query);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw KapuaExceptionUtils.convertPersistenceException(e);
-        }
-        finally {
+        } finally {
             em.close();
         }
 
@@ -200,8 +227,7 @@ public class RoleServiceImpl implements RoleService
 
     @Override
     public RoleListResult merge(Set<RoleCreator> newPermissions)
-        throws KapuaException
-    {
+            throws KapuaException {
         // TODO Auto-generated method stub
         return null;
     }
