@@ -12,8 +12,6 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.authorization.role.shiro;
 
-import java.util.Set;
-
 import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.jpa.EntityManager;
@@ -28,6 +26,7 @@ import org.eclipse.kapua.service.authorization.permission.PermissionFactory;
 import org.eclipse.kapua.service.authorization.role.Role;
 import org.eclipse.kapua.service.authorization.role.RoleCreator;
 import org.eclipse.kapua.service.authorization.role.RoleListResult;
+import org.eclipse.kapua.service.authorization.role.RolePermission;
 import org.eclipse.kapua.service.authorization.role.RoleService;
 import org.eclipse.kapua.service.authorization.shiro.AuthorizationEntityManagerFactory;
 
@@ -100,8 +99,52 @@ public class RoleServiceImpl implements RoleService {
                 throw new KapuaEntityNotFoundException(Role.TYPE, role.getId());
             }
 
+            // Role name
+            currentRole.setName(role.getName());
+
+            // Role permissions - update existing
+            for (RolePermission currentRolePermission : currentRole.getPermissions()) {
+                for (RolePermission newRolePermission : role.getPermissions()) {
+                    if (currentRolePermission.getId().equals(newRolePermission.getId()) && !currentRolePermission.equals(newRolePermission)) {
+                        currentRolePermission.setPermission(newRolePermission.getPermission());
+                    }
+                }
+            }
+
+            RolePermission asd = new RolePermissionImpl(currentRole.getId(), "device", Actions.connect, currentRole.getScopeId());
+            asd.setRoleId(currentRole.getId());
+
+            currentRole.getPermissions().add(asd);
+
+            // Role permissions - update existing
+
+            // Iterator<RolePermission> rolePermissionIterator = currentRole.getPermissions().iterator();
+            // while (rolePermissionIterator.hasNext()) {
+            // RolePermission rp = rolePermissionIterator.next();
+            //
+            // RolePermission rolePermissionUpdated = null;
+            // for (RolePermission rpu : role.getPermissions()) {
+            // if (rpu.getId().equals(rp.getId())) {
+            // rolePermissionUpdated = rpu;
+            // break;
+            // }
+            // }
+            //
+            // if (rolePermissionUpdated != null) {
+            // rp.setPermission(rolePermissionUpdated.getPermission());
+            // role.getPermissions().remove(rolePermissionUpdated);
+            // } else {
+            // currentRole.getPermissions().remove(rp);
+            // }
+            // }
+            //
+            // // currentRole.setPermissions(role.getPermissions());
+
+            // Optlock
+            currentRole.setOptlock(role.getOptlock());
+
             em.beginTransaction();
-            RoleDAO.update(em, role);
+            RoleDAO.update(em, currentRole);
             em.commit();
 
             roleUpdated = RoleDAO.find(em, role.getId());
@@ -223,12 +266,5 @@ public class RoleServiceImpl implements RoleService {
         }
 
         return count;
-    }
-
-    @Override
-    public RoleListResult merge(Set<RoleCreator> newPermissions)
-            throws KapuaException {
-        // TODO Auto-generated method stub
-        return null;
     }
 }
