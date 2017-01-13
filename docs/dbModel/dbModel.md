@@ -10,7 +10,8 @@ Column data of each entity is not described in detail. This detail is available 
 
 ## Account, User and Permissions
 
-![alt text][user_account_permission_ER]
+![alt text][user_account_permission_ER]  
+
 ER diagram describing Account, User and Permissions 
 
 ### act_account
