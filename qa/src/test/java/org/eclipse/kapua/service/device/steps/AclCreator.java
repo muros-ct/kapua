@@ -20,6 +20,7 @@ import org.eclipse.kapua.service.account.Account;
 import org.eclipse.kapua.service.account.AccountCreator;
 import org.eclipse.kapua.service.account.AccountFactory;
 import org.eclipse.kapua.service.account.AccountService;
+import org.eclipse.kapua.service.account.internal.AccountDomain;
 import org.eclipse.kapua.service.authentication.credential.Credential;
 import org.eclipse.kapua.service.authentication.credential.CredentialCreator;
 import org.eclipse.kapua.service.authentication.credential.CredentialService;
@@ -29,15 +30,19 @@ import org.eclipse.kapua.service.authorization.access.AccessInfoCreator;
 import org.eclipse.kapua.service.authorization.access.AccessInfoService;
 import org.eclipse.kapua.service.authorization.access.shiro.AccessInfoFactoryImpl;
 import org.eclipse.kapua.service.authorization.domain.Domain;
+import org.eclipse.kapua.service.authorization.domain.shiro.DomainDomain;
 import org.eclipse.kapua.service.authorization.permission.Actions;
 import org.eclipse.kapua.service.authorization.permission.Permission;
 import org.eclipse.kapua.service.authorization.permission.PermissionFactory;
 import org.eclipse.kapua.service.authorization.permission.shiro.PermissionFactoryImpl;
 import org.eclipse.kapua.service.datastore.DatastoreDomain;
 import org.eclipse.kapua.service.device.management.commons.DeviceManagementDomain;
+import org.eclipse.kapua.service.device.registry.connection.internal.DeviceConnectionDomain;
+import org.eclipse.kapua.service.device.registry.internal.DeviceDomain;
 import org.eclipse.kapua.service.user.User;
 import org.eclipse.kapua.service.user.UserCreator;
 import org.eclipse.kapua.service.user.UserService;
+import org.eclipse.kapua.service.user.internal.UserDomain;
 import org.eclipse.kapua.service.user.internal.UserFactoryImpl;
 
 import java.math.BigInteger;
@@ -207,7 +212,7 @@ public class AclCreator {
         return accessInfoCreator;
     }
 
-    void attachUserCredentials(Account account, User user) throws KapuaException {
+    public void attachUserCredentials(Account account, User user) throws KapuaException {
         KapuaSecurityUtils.doPrivileged(() -> {
             CredentialCreator credentialCreator;
             credentialCreator = new CredentialFactoryImpl().newCreator(account.getId(), user.getId(), CredentialType.PASSWORD, "kapua-password");
@@ -221,13 +226,13 @@ public class AclCreator {
         });
     }
 
-    User createUser(Account account, String name) throws KapuaException {
+    public User createUser(Account account, String name) throws KapuaException {
         configureUserService(account.getId(), SYS_ID);
         UserCreator userCreator = new UserFactoryImpl().newCreator(account.getId(), name);
         return userService.create(userCreator);
     }
 
-    Account createAccount(String name, String orgName, String orgEmail) throws KapuaException {
+    public Account createAccount(String name, String orgName, String orgEmail) throws KapuaException {
         configureAccountService(ROOT_SCOPE_ID, SYS_ID);
         AccountCreator accountCreator = accountFactory.newCreator(ROOT_SCOPE_ID, name);
         accountCreator.setOrganizationName(orgName);
@@ -235,7 +240,7 @@ public class AclCreator {
         return accountService.create(accountCreator);
     }
 
-    void attachBrokerPermissions(Account account, User user) throws Exception {
+    public void attachBrokerPermissions(Account account, User user) throws Exception {
         List<PermissionData> permissionList = new ArrayList<>();
         permissionList.add(new PermissionData(new BrokerDomain(), Actions.connect, (KapuaEid) user.getScopeId()));
         createPermissions(permissionList, user, account);
@@ -256,6 +261,27 @@ public class AclCreator {
     void attachDataManagePermissions(Account account, User user) throws Exception {
         List<PermissionData> permissionList = new ArrayList<>();
         permissionList.add(new PermissionData(new DatastoreDomain(), Actions.write, (KapuaEid) user.getScopeId()));
+        createPermissions(permissionList, user, account);
+    }
+
+    public void attachFullPermissions(Account account, User user) throws Exception {
+        List<PermissionData> permissionList = new ArrayList<>();
+        permissionList.add(new PermissionData(new BrokerDomain(), Actions.connect, (KapuaEid) user.getScopeId()));
+        permissionList.add(new PermissionData(new DeviceManagementDomain(), Actions.write, (KapuaEid) user.getScopeId()));
+        permissionList.add(new PermissionData(new DatastoreDomain(), Actions.read, (KapuaEid) user.getScopeId()));
+        permissionList.add(new PermissionData(new DatastoreDomain(), Actions.write, (KapuaEid) user.getScopeId()));
+
+        permissionList.add(new PermissionData(new AccountDomain(), Actions.read, (KapuaEid) user.getScopeId()));
+        permissionList.add(new PermissionData(new AccountDomain(), Actions.write, (KapuaEid) user.getScopeId()));
+        permissionList.add(new PermissionData(new UserDomain(), Actions.read, (KapuaEid) user.getScopeId()));
+        permissionList.add(new PermissionData(new UserDomain(), Actions.write, (KapuaEid) user.getScopeId()));
+
+        permissionList.add(new PermissionData(new DeviceConnectionDomain(), Actions.read, (KapuaEid) user.getScopeId()));
+        permissionList.add(new PermissionData(new DeviceConnectionDomain(), Actions.write, (KapuaEid) user.getScopeId()));
+
+        permissionList.add(new PermissionData(new DeviceDomain(), Actions.read, (KapuaEid) user.getScopeId()));
+        permissionList.add(new PermissionData(new DeviceDomain(), Actions.write, (KapuaEid) user.getScopeId()));
+
         createPermissions(permissionList, user, account);
     }
 }

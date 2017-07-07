@@ -40,11 +40,14 @@ public final class With {
 
     public static void withUserAccount(final String accountName, final ThrowingConsumer<User> consumer) throws Exception {
         final UserService userService = getInstance().getService(UserService.class);
-        final User account = userService.findByName(accountName);
+        try {
+            final User account = userService.findByName(accountName);
+            Assert.assertNotNull(String.format("Account %s should be found", accountName), account);
+            consumer.accept(account);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        Assert.assertNotNull(String.format("Account %s should be found", accountName), account);
-
-        consumer.accept(account);
     }
 
     public static void withDevice(final User account, final String clientId, final ThrowingConsumer<Device> consumer) throws Exception {

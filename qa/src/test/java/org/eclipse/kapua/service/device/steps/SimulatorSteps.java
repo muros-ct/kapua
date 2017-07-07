@@ -416,7 +416,7 @@ public class SimulatorSteps {
 
         withUserAccount(accountName, account -> {
 
-            final DeviceConnection result = service.findByClientId(account.getId(), clientId);
+            final DeviceConnection result = service.findByClientId(account.getScopeId(), clientId);
             Assert.assertNotNull(result);
             Assert.assertEquals(clientId, result.getClientId());
             Assert.assertEquals(expectedState, result.getStatus());
