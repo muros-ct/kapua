@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -14,6 +14,7 @@ package org.eclipse.kapua.service.device.management.configuration.internal;
 import java.io.StringWriter;
 import java.util.Date;
 
+import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
@@ -22,7 +23,6 @@ import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.KapuaIllegalArgumentException;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.commons.util.xml.XmlUtil;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
@@ -60,6 +60,21 @@ public class DeviceConfigurationManagementServiceImpl implements DeviceConfigura
 
     private static final Domain DEVICE_MANAGEMENT_DOMAIN = new DeviceManagementDomain();
 
+    @Inject
+    AuthorizationService authorizationService;
+
+    @Inject
+    PermissionFactory permissionFactory;
+
+    @Inject
+    DeviceEventService deviceEventService;
+
+    @Inject
+    DeviceEventFactory deviceEventFactory;
+
+    @Inject
+    DeviceConfigurationFactory deviceConfigurationFactory;
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public DeviceConfiguration get(KapuaId scopeId, KapuaId deviceId, String configurationId, String configurationComponentPid, Long timeout)
@@ -71,9 +86,6 @@ public class DeviceConfigurationManagementServiceImpl implements DeviceConfigura
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_MANAGEMENT_DOMAIN, Actions.read, scopeId));
 
         //
@@ -126,9 +138,6 @@ public class DeviceConfigurationManagementServiceImpl implements DeviceConfigura
 
         //
         // Create event
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
-
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, deviceId, responseMessage.getReceivedOn(), DeviceConfigurationAppProperties.APP_NAME.getValue());
         deviceEventCreator.setPosition(responseMessage.getPosition());
         deviceEventCreator.setSentOn(responseMessage.getSentOn());
@@ -154,9 +163,6 @@ public class DeviceConfigurationManagementServiceImpl implements DeviceConfigura
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_MANAGEMENT_DOMAIN, Actions.write, scopeId));
 
         //
@@ -170,7 +176,6 @@ public class DeviceConfigurationManagementServiceImpl implements DeviceConfigura
         ConfigurationRequestPayload configurationRequestPayload = new ConfigurationRequestPayload();
 
         try {
-            DeviceConfigurationFactory deviceConfigurationFactory = locator.getFactory(DeviceConfigurationFactory.class);
             DeviceConfiguration deviceConfiguration = deviceConfigurationFactory.newConfigurationInstance();
             deviceConfiguration.getComponentConfigurations().add(deviceComponentConfiguration);
 
@@ -200,9 +205,6 @@ public class DeviceConfigurationManagementServiceImpl implements DeviceConfigura
 
         //
         // Create event
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
-
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, deviceId, responseMessage.getReceivedOn(), DeviceConfigurationAppProperties.APP_NAME.getValue());
         deviceEventCreator.setPosition(responseMessage.getPosition());
         deviceEventCreator.setSentOn(responseMessage.getSentOn());
@@ -240,9 +242,6 @@ public class DeviceConfigurationManagementServiceImpl implements DeviceConfigura
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_MANAGEMENT_DOMAIN, Actions.write, scopeId));
 
         //
@@ -281,9 +280,6 @@ public class DeviceConfigurationManagementServiceImpl implements DeviceConfigura
 
         //
         // Create event
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
-
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, deviceId, responseMessage.getReceivedOn(), DeviceConfigurationAppProperties.APP_NAME.getValue());
         deviceEventCreator.setPosition(responseMessage.getPosition());
         deviceEventCreator.setSentOn(responseMessage.getSentOn());

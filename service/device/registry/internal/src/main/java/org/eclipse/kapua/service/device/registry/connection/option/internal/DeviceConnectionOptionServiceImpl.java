@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -17,7 +17,6 @@ import org.eclipse.kapua.KapuaRuntimeErrorCodes;
 import org.eclipse.kapua.KapuaRuntimeException;
 import org.eclipse.kapua.commons.service.internal.AbstractKapuaService;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
@@ -32,6 +31,8 @@ import org.eclipse.kapua.service.device.registry.connection.option.DeviceConnect
 import org.eclipse.kapua.service.device.registry.connection.option.DeviceConnectionOptionService;
 import org.eclipse.kapua.service.device.registry.internal.DeviceEntityManagerFactory;
 
+import javax.inject.Inject;
+
 /**
  * DeviceConnectionService exposes APIs to retrieve Device connections under a scope.
  * It includes APIs to find, list, and update devices connections associated with a scope.
@@ -42,6 +43,12 @@ import org.eclipse.kapua.service.device.registry.internal.DeviceEntityManagerFac
 public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService implements DeviceConnectionOptionService {
 
     private static final Domain DEVICE_CONNECTION_DOMAIN = new DeviceConnectionDomain();
+
+    @Inject
+    AuthorizationService authorizationService;
+
+    @Inject
+    PermissionFactory permissionFactory;
 
     public DeviceConnectionOptionServiceImpl() {
         super(DeviceEntityManagerFactory.instance());
@@ -64,9 +71,6 @@ public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService impl
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_CONNECTION_DOMAIN, Actions.write, deviceConnectionOptions.getScopeId()));
 
         return entityManagerSession.onTransactedResult(em -> {
@@ -88,9 +92,6 @@ public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService impl
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_CONNECTION_DOMAIN, Actions.read, scopeId));
 
         return entityManagerSession.onResult(em -> DeviceConnectionOptionDAO.find(em, entityId));
@@ -106,9 +107,6 @@ public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService impl
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_CONNECTION_DOMAIN, Actions.read, query.getScopeId()));
 
         return entityManagerSession.onResult(em -> DeviceConnectionOptionDAO.query(em, query));
@@ -124,9 +122,6 @@ public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService impl
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_CONNECTION_DOMAIN, Actions.read, query.getScopeId()));
 
         return entityManagerSession.onResult(em -> DeviceConnectionOptionDAO.count(em, query));

@@ -12,17 +12,17 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management;
 
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.service.device.management.request.KapuaRequestChannel;
 import org.eclipse.kapua.service.device.management.request.KapuaRequestMessage;
 import org.eclipse.kapua.service.device.management.request.KapuaRequestPayload;
 
+import javax.inject.Inject;
 import javax.xml.bind.annotation.XmlRegistry;
 
 @XmlRegistry
 public class RequestMessageXmlRegistry {
-    private final KapuaLocator locator = KapuaLocator.getInstance();
-    private final KapuaRequestMessageFactory factory = locator.getFactory(KapuaRequestMessageFactory.class);
+    @Inject
+    private KapuaRequestMessageFactory factory;
 
     public KapuaRequestChannel newRequestChannel() {
         return factory.newRequestChannel();

@@ -15,7 +15,6 @@ import java.util.Date;
 
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
@@ -37,6 +36,8 @@ import org.eclipse.kapua.service.device.registry.event.DeviceEventCreator;
 import org.eclipse.kapua.service.device.registry.event.DeviceEventFactory;
 import org.eclipse.kapua.service.device.registry.event.DeviceEventService;
 
+import javax.inject.Inject;
+
 /**
  * Device command service implementation.
  * 
@@ -47,6 +48,18 @@ import org.eclipse.kapua.service.device.registry.event.DeviceEventService;
 public class DeviceCommandManagementServiceImpl implements DeviceCommandManagementService {
 
     private static final Domain DEVICE_MANAGEMENT_DOMAIN = new DeviceManagementDomain();
+
+    @Inject
+    AuthorizationService authorizationService;
+
+    @Inject
+    PermissionFactory permissionFactory;
+
+    @Inject
+    DeviceEventService deviceEventService;
+
+    @Inject
+    DeviceEventFactory deviceEventFactory;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
@@ -61,9 +74,6 @@ public class DeviceCommandManagementServiceImpl implements DeviceCommandManageme
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_MANAGEMENT_DOMAIN, Actions.execute, scopeId));
 
         //
@@ -98,9 +108,6 @@ public class DeviceCommandManagementServiceImpl implements DeviceCommandManageme
 
         //
         // Create event
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
-
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, deviceId, responseMessage.getReceivedOn(), CommandAppProperties.APP_NAME.getValue());
         deviceEventCreator.setPosition(responseMessage.getPosition());
         deviceEventCreator.setSentOn(responseMessage.getSentOn());

@@ -11,9 +11,8 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.device.registry.connection.option;
 
+import javax.inject.Inject;
 import javax.xml.bind.annotation.XmlRegistry;
-
-import org.eclipse.kapua.locator.KapuaLocator;
 
 /**
  * Device connection options XML factory class
@@ -23,8 +22,8 @@ import org.eclipse.kapua.locator.KapuaLocator;
 @XmlRegistry
 public class DeviceConnectionOptionXmlRegistry {
 
-    private final KapuaLocator locator = KapuaLocator.getInstance();
-    private final DeviceConnectionOptionFactory factory = locator.getFactory(DeviceConnectionOptionFactory.class);
+    @Inject
+    private DeviceConnectionOptionFactory factory;
 
     /**
      * Creates a new {@link DeviceConnectionOption}

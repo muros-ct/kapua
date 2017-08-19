@@ -107,7 +107,7 @@ public class AccountServiceTestSteps extends AbstractKapuaSteps {
     /**
      * Setup DI with Google Guice DI.
      * Create mocked and non mocked service under test and bind them with Guice.
-     * It is based on custom MockedLocator locator that is meant for sevice unit tests.
+     * It is based on custom MockedLocator locator that is meant for service unit tests.
      */
     private static void setupDI() {
 

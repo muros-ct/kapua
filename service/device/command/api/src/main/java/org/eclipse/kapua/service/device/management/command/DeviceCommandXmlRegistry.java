@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,9 +11,8 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.command;
 
+import javax.inject.Inject;
 import javax.xml.bind.annotation.XmlRegistry;
-
-import org.eclipse.kapua.locator.KapuaLocator;
 
 /**
  * Device bundle xml factory class
@@ -24,8 +23,8 @@ import org.eclipse.kapua.locator.KapuaLocator;
 @XmlRegistry
 public class DeviceCommandXmlRegistry {
 
-    private final KapuaLocator locator = KapuaLocator.getInstance();
-    private final DeviceCommandFactory factory = locator.getFactory(DeviceCommandFactory.class);
+    @Inject
+    private DeviceCommandFactory factory;
 
     /**
      * Creates a new device command input

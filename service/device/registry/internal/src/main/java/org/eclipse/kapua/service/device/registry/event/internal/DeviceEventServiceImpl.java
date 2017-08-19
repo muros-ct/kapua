@@ -15,7 +15,6 @@ import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.service.internal.AbstractKapuaService;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
@@ -31,6 +30,8 @@ import org.eclipse.kapua.service.device.registry.event.DeviceEventListResult;
 import org.eclipse.kapua.service.device.registry.event.DeviceEventService;
 import org.eclipse.kapua.service.device.registry.internal.DeviceEntityManagerFactory;
 
+import javax.inject.Inject;
+
 /**
  * {@link DeviceEventService} implementation.
  * 
@@ -40,9 +41,14 @@ import org.eclipse.kapua.service.device.registry.internal.DeviceEntityManagerFac
 @KapuaProvider
 public class DeviceEventServiceImpl extends AbstractKapuaService implements DeviceEventService {
 
-    private final AuthorizationService authorizationService;
-    private final PermissionFactory permissionFactory;
-    private final DeviceRegistryService deviceRegistryService;
+    @Inject
+    private AuthorizationService authorizationService;
+
+    @Inject
+    private PermissionFactory permissionFactory;
+
+    @Inject
+    private DeviceRegistryService deviceRegistryService;
 
     private static final Domain DEVICE_EVENT_DOMAIN = new DeviceEventDomain();
 
@@ -51,10 +57,6 @@ public class DeviceEventServiceImpl extends AbstractKapuaService implements Devi
      */
     public DeviceEventServiceImpl() {
         super(DeviceEntityManagerFactory.instance());
-        KapuaLocator locator = KapuaLocator.getInstance();
-        authorizationService = locator.getService(AuthorizationService.class);
-        permissionFactory = locator.getFactory(PermissionFactory.class);
-        deviceRegistryService = locator.getService(DeviceRegistryService.class);
     }
 
     // Operations

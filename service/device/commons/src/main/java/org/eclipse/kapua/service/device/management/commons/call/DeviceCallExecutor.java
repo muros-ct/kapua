@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -12,7 +12,6 @@
 package org.eclipse.kapua.service.device.management.commons.call;
 
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.service.device.call.DeviceCall;
 import org.eclipse.kapua.service.device.call.DeviceCallFactory;
 import org.eclipse.kapua.service.device.call.message.app.request.DeviceRequestMessage;
@@ -26,6 +25,8 @@ import org.eclipse.kapua.service.device.management.request.KapuaRequestMessage;
 import org.eclipse.kapua.service.device.management.request.KapuaRequestPayload;
 import org.eclipse.kapua.service.device.management.response.KapuaResponseMessage;
 import org.eclipse.kapua.translator.Translator;
+
+import javax.inject.Inject;
 
 /**
  * Device call executor definition.<br>
@@ -48,6 +49,9 @@ public class DeviceCallExecutor<C extends KapuaRequestChannel, P extends KapuaRe
 
     private RQ requestMessage;
     private Long timeout;
+
+    @Inject
+    private DeviceCallFactory kapuaDeviceCallFactory;
 
     /**
      * Constructor
@@ -80,8 +84,6 @@ public class DeviceCallExecutor<C extends KapuaRequestChannel, P extends KapuaRe
             throws KapuaException {
         //
         // Get the correct device call
-        KapuaLocator locator = KapuaLocator.getInstance();
-        DeviceCallFactory kapuaDeviceCallFactory = locator.getFactory(DeviceCallFactory.class);
         DeviceCall<DeviceRequestMessage, DeviceResponseMessage> deviceCall = kapuaDeviceCallFactory.newDeviceCall();
         Translator tKapuaToClient = Translator.getTranslatorFor(requestMessage.getRequestClass(),
                 deviceCall.getBaseMessageClass());

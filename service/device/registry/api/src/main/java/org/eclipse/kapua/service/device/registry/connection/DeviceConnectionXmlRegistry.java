@@ -11,9 +11,8 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.device.registry.connection;
 
+import javax.inject.Inject;
 import javax.xml.bind.annotation.XmlRegistry;
-
-import org.eclipse.kapua.locator.KapuaLocator;
 
 /**
  * Device connection xml factory class
@@ -23,8 +22,8 @@ import org.eclipse.kapua.locator.KapuaLocator;
 @XmlRegistry
 public class DeviceConnectionXmlRegistry {
 
-    private final KapuaLocator locator = KapuaLocator.getInstance();
-    private final DeviceConnectionFactory factory = locator.getFactory(DeviceConnectionFactory.class);
+    @Inject
+    private DeviceConnectionFactory factory;
 
     /**
      * Creates a new connection summary

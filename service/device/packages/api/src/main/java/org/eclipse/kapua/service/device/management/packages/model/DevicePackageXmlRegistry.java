@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,9 +11,9 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.packages.model;
 
+import javax.inject.Inject;
 import javax.xml.bind.annotation.XmlRegistry;
 
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.service.device.management.packages.DevicePackageFactory;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadRequest;
 import org.eclipse.kapua.service.device.management.packages.model.uninstall.DevicePackageUninstallRequest;
@@ -27,8 +27,8 @@ import org.eclipse.kapua.service.device.management.packages.model.uninstall.Devi
 @XmlRegistry
 public class DevicePackageXmlRegistry {
 
-    private final KapuaLocator locator = KapuaLocator.getInstance();
-    private final DevicePackageFactory factory = locator.getFactory(DevicePackageFactory.class);
+    @Inject
+    private DevicePackageFactory factory;
 
     /**
      * Creates a new device package instance

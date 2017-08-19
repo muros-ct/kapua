@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -16,17 +16,20 @@ import static org.mockito.Mockito.mock;
 
 import java.math.BigInteger;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.configuration.metatype.KapuaMetatypeFactoryImpl;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
 import org.eclipse.kapua.commons.model.id.KapuaIdFactoryImpl;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.commons.security.KapuaSession;
+import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.config.metatype.KapuaMetatypeFactory;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.id.KapuaIdFactory;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
-import org.eclipse.kapua.service.authorization.permission.Permission;
 import org.eclipse.kapua.service.authorization.permission.PermissionFactory;
 import org.eclipse.kapua.service.device.registry.DeviceCreator;
 import org.eclipse.kapua.service.device.registry.DeviceFactory;
@@ -53,67 +56,86 @@ import cucumber.runtime.java.guice.ScenarioScoped;
  * Implementation of Gherkin steps used in DeviceRegistryValidation.feature scenarios.
  * <p>
  * MockedLocator is used for Location Service. Mockito is used to mock other
- * services that the Device Registry services dependent on. Dependent services are: -
- * Authorization Service.
+ * services that the Device Registry services dependent on. Dependent services are:
+ * - Authorization Service.
  */
 @ScenarioScoped
 public class DeviceRegistryValidationTestSteps extends AbstractKapuaSteps {
 
-    KapuaId rootScopeId = new KapuaEid(BigInteger.ONE);
+    static {
+        setupDI();
+    }
 
-    // Currently executing scenario.
-    Scenario scenario;
-
-    // Device validator object
-    // DeviceValidation deviceValidator = null;
+    private KapuaId rootScopeId = new KapuaEid(BigInteger.ONE);
 
     // Commons related objects
-    KapuaIdFactory kapuaIdFactory = new KapuaIdFactoryImpl();
+    private KapuaIdFactory kapuaIdFactory = new KapuaIdFactoryImpl();
 
     // Device registry related objects
-    DeviceRegistryService deviceRegistryService = new DeviceRegistryServiceImpl();
-    DeviceFactory deviceFactory = new DeviceFactoryImpl();
-    DeviceCreator deviceCreator;
-    DeviceImpl device;
-    DeviceQuery query;
+    private DeviceRegistryService deviceRegistryService;
+    private DeviceFactory deviceFactory;
+    private DeviceCreator deviceCreator;
+    private DeviceImpl device;
+    private DeviceQuery query;
 
     // Check if exception was fired in step.
-    boolean exceptionCaught;
+    private boolean exceptionCaught;
 
     // *************************************
     // Definition of Cucumber scenario steps
     // *************************************
 
+    /**
+     * Setup DI with Google Guice DI.
+     * Create mocked and non mocked service under test and bind them with Guice.
+     * It is based on custom MockedLocator locator that is meant for service unit tests.
+     */
+    private static void setupDI() {
+
+        MockedLocator mockedLocator = (MockedLocator) KapuaLocator.getInstance();
+
+        AbstractModule module = new AbstractModule() {
+
+            @Override
+            protected void configure() {
+
+                // Inject mocked Authorization Service method checkPermission
+                AuthorizationService mockedAuthorization = mock(AuthorizationService.class);
+                try {
+                    Mockito.doNothing().when(mockedAuthorization).checkPermission(any(org.eclipse.kapua.service.authorization.permission.Permission.class));
+                } catch (KapuaException e) {
+                    // skip
+                }
+                bind(AuthorizationService.class).toInstance(mockedAuthorization);
+                // Inject mocked Permission Factory
+                PermissionFactory mockedPermissionFactory = mock(PermissionFactory.class);
+                bind(PermissionFactory.class).toInstance(mockedPermissionFactory);
+                // Set KapuaMetatypeFactory for Metatype configuration
+                KapuaMetatypeFactory metaFactory = new KapuaMetatypeFactoryImpl();
+                bind(KapuaMetatypeFactory.class).toInstance(metaFactory);
+
+                // Inject actual device registry related services
+                DeviceRegistryService deviceRegistryService = new DeviceRegistryServiceImpl();
+                bind(DeviceRegistryService.class).toInstance(deviceRegistryService);
+                DeviceFactory deviceFactory = new DeviceFactoryImpl();
+                bind(DeviceFactory.class).toInstance(deviceFactory);
+            }
+        };
+
+        Injector injector = Guice.createInjector(module);
+        mockedLocator.setInjector(injector);
+    }
     // Setup and tear-down steps
 
     @Before
     public void beforeScenario(Scenario scenario)
             throws Exception {
-        this.scenario = scenario;
+
+        //locator = KapuaLocator.getInstance();
+        this.deviceRegistryService = locator.getService(DeviceRegistryService.class);
+        this.deviceFactory = locator.getFactory(DeviceFactory.class);
+
         exceptionCaught = false;
-
-        // Set up the mock locator
-        MockedLocator mockLocator = (MockedLocator) locator;
-
-        // Inject mocked Authorization Service method checkPermission
-        AuthorizationService mockedAuthorization = mock(AuthorizationService.class);
-        Mockito.doNothing().when(mockedAuthorization).checkPermission(any(Permission.class));
-        mockLocator.setMockedService(AuthorizationService.class, mockedAuthorization);
-
-        // Inject mocked Permission Factory
-        PermissionFactory mockedPermissionFactory = mock(PermissionFactory.class);
-        mockLocator.setMockedFactory(PermissionFactory.class, mockedPermissionFactory);
-
-        // Inject commons objects
-        mockLocator.setMockedFactory(KapuaIdFactory.class, kapuaIdFactory);
-
-        // Inject the validation object
-        mockLocator.setMockedService(DeviceRegistryService.class, deviceRegistryService);
-        mockLocator.setMockedFactory(DeviceFactory.class, deviceFactory);
-        // deviceValidator = new DeviceValidation();
-
-        // Set KapuaMetatypeFactory for Metatype configuration
-        mockLocator.setMockedFactory(KapuaMetatypeFactory.class, new KapuaMetatypeFactoryImpl());
 
         // All operations on database are performed using system user.
         KapuaSession kapuaSession = new KapuaSession(null, new KapuaEid(BigInteger.ONE), new KapuaEid(BigInteger.ONE));

@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.Random;
 
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.service.device.call.DeviceCall;
 import org.eclipse.kapua.service.device.call.kura.exception.KuraMqttDeviceCallErrorCodes;
 import org.eclipse.kapua.service.device.call.kura.exception.KuraMqttDeviceCallException;
@@ -30,11 +29,16 @@ import org.eclipse.kapua.transport.TransportClientFactory;
 import org.eclipse.kapua.transport.TransportFacade;
 import org.eclipse.kapua.transport.message.TransportMessage;
 
+import javax.inject.Inject;
+
 /**
  * Kura device call implementation.
  */
 @SuppressWarnings("rawtypes")
 public class KuraDeviceCallImpl implements DeviceCall<KuraRequestMessage, KuraResponseMessage> {
+
+    @Inject
+    TransportClientFactory transportClientFactory;
 
     @Override
     public KuraResponseMessage create(KuraRequestMessage requestMessage, Long timeout)
@@ -143,8 +147,6 @@ public class KuraDeviceCallImpl implements DeviceCall<KuraRequestMessage, KuraRe
             throws KuraMqttDeviceCallException {
         TransportFacade transportFacade;
         try {
-            KapuaLocator locator = KapuaLocator.getInstance();
-            TransportClientFactory transportClientFactory = locator.getFactory(TransportClientFactory.class);
             transportFacade = transportClientFactory.getFacade();
         } catch (Exception e) {
             throw new KuraMqttDeviceCallException(KuraMqttDeviceCallErrorCodes.CALL_ERROR, e);

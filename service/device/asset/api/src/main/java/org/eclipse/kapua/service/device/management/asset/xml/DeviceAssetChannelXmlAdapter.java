@@ -11,9 +11,9 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.asset.xml;
 
+import javax.inject.Inject;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.type.ObjectValueConverter;
 import org.eclipse.kapua.service.device.management.asset.DeviceAssetChannel;
 import org.eclipse.kapua.service.device.management.asset.DeviceAssetFactory;
@@ -25,7 +25,8 @@ import org.eclipse.kapua.service.device.management.asset.DeviceAssetFactory;
  */
 public class DeviceAssetChannelXmlAdapter extends XmlAdapter<XmlAdaptedDeviceAssetChannel, DeviceAssetChannel> {
 
-    DeviceAssetFactory factory = KapuaLocator.getInstance().getFactory(DeviceAssetFactory.class);
+    @Inject
+    DeviceAssetFactory factory;
 
     @Override
     public XmlAdaptedDeviceAssetChannel marshal(DeviceAssetChannel deviceAssetChannel) throws Exception {

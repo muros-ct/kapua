@@ -14,13 +14,13 @@ package org.eclipse.kapua.service.device.management.asset.internal;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
+import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
 
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
@@ -55,6 +55,18 @@ public class DeviceAssetManagementServiceImpl implements DeviceAssetManagementSe
 
     private static final Domain DEVICE_MANAGEMENT_DOMAIN = new DeviceManagementDomain();
 
+    @Inject
+    private AuthorizationService authorizationService;
+
+    @Inject
+    private PermissionFactory permissionFactory;
+
+    @Inject
+    DeviceEventService deviceEventService;
+
+    @Inject
+    DeviceEventFactory deviceEventFactory;
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public DeviceAssets get(KapuaId scopeId, KapuaId deviceId, DeviceAssets deviceAssets, Long timeout)
@@ -67,9 +79,6 @@ public class DeviceAssetManagementServiceImpl implements DeviceAssetManagementSe
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_MANAGEMENT_DOMAIN, Actions.read, scopeId));
 
         //
@@ -110,9 +119,6 @@ public class DeviceAssetManagementServiceImpl implements DeviceAssetManagementSe
 
         //
         // Create event
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
-
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, deviceId, responseMessage.getReceivedOn(), DeviceAssetAppProperties.APP_NAME.getValue());
         deviceEventCreator.setPosition(responseMessage.getPosition());
         deviceEventCreator.setSentOn(responseMessage.getSentOn());
@@ -136,9 +142,6 @@ public class DeviceAssetManagementServiceImpl implements DeviceAssetManagementSe
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_MANAGEMENT_DOMAIN, Actions.read, scopeId));
 
         //
@@ -180,9 +183,6 @@ public class DeviceAssetManagementServiceImpl implements DeviceAssetManagementSe
 
         //
         // Create event
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
-
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, deviceId, responseMessage.getReceivedOn(), DeviceAssetAppProperties.APP_NAME.getValue());
         deviceEventCreator.setPosition(responseMessage.getPosition());
         deviceEventCreator.setSentOn(responseMessage.getSentOn());
@@ -206,9 +206,6 @@ public class DeviceAssetManagementServiceImpl implements DeviceAssetManagementSe
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DEVICE_MANAGEMENT_DOMAIN, Actions.read, scopeId));
 
         //
@@ -250,9 +247,6 @@ public class DeviceAssetManagementServiceImpl implements DeviceAssetManagementSe
 
         //
         // Create event
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
-
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, deviceId, responseMessage.getReceivedOn(), DeviceAssetAppProperties.APP_NAME.getValue());
         deviceEventCreator.setPosition(responseMessage.getPosition());
         deviceEventCreator.setSentOn(responseMessage.getSentOn());

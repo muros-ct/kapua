@@ -16,7 +16,6 @@ import org.eclipse.kapua.KapuaErrorCodes;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.KapuaRuntimeException;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
 import org.eclipse.kapua.service.authorization.domain.Domain;
@@ -34,14 +33,28 @@ import org.eclipse.kapua.service.device.registry.event.DeviceEventCreator;
 import org.eclipse.kapua.service.device.registry.event.DeviceEventFactory;
 import org.eclipse.kapua.service.device.registry.event.DeviceEventService;
 
+import javax.inject.Inject;
 import java.util.Date;
 
 @KapuaProvider
 public class DeviceRequestManagementServiceImpl implements DeviceRequestManagementService {
 
-    private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
     private static final Domain DEVICE_MANAGEMENT_DOMAIN = new DeviceManagementDomain();
-    private static final GenericRequestFactory FACTORY = LOCATOR.getFactory(GenericRequestFactory.class);
+
+    @Inject
+    private GenericRequestFactory factory;
+
+    @Inject
+    private AuthorizationService authorizationService;
+
+    @Inject
+    private PermissionFactory permissionFactory;
+
+    @Inject
+    private DeviceEventService deviceEventService;
+
+    @Inject
+    private DeviceEventFactory deviceEventFactory;
 
     @Override
     public GenericResponseMessage exec(
@@ -53,9 +66,6 @@ public class DeviceRequestManagementServiceImpl implements DeviceRequestManageme
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         Actions action;
         switch (requestInput.getChannel().getMethod()) {
         case EXECUTE:
@@ -79,17 +89,17 @@ public class DeviceRequestManagementServiceImpl implements DeviceRequestManageme
 
         //
         // Prepare the request
-        GenericRequestChannel genericRequestChannel = FACTORY.newRequestChannel();
+        GenericRequestChannel genericRequestChannel = factory.newRequestChannel();
         genericRequestChannel.setAppName(requestInput.getChannel().getAppName());
         genericRequestChannel.setVersion(requestInput.getChannel().getVersion());
         genericRequestChannel.setMethod(requestInput.getChannel().getMethod());
         genericRequestChannel.setResources(requestInput.getChannel().getResources());
 
-        GenericRequestPayload genericRequestPayload = FACTORY.newRequestPayload();
+        GenericRequestPayload genericRequestPayload = factory.newRequestPayload();
         genericRequestPayload.setMetrics(requestInput.getPayload().getMetrics());
         genericRequestPayload.setBody(requestInput.getPayload().getBody());
 
-        GenericRequestMessage genericRequestMessage = FACTORY.newRequestMessage();
+        GenericRequestMessage genericRequestMessage = factory.newRequestMessage();
         genericRequestMessage.setScopeId(requestInput.getScopeId());
         genericRequestMessage.setDeviceId(requestInput.getDeviceId());
         genericRequestMessage.setCapturedOn(new Date());
@@ -104,9 +114,6 @@ public class DeviceRequestManagementServiceImpl implements DeviceRequestManageme
 
         //
         // Create event
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
-
         DeviceEventCreator deviceEventCreator = deviceEventFactory
                 .newCreator(requestInput.getScopeId(), requestInput.getDeviceId(), responseMessage.getReceivedOn(), requestInput.getChannel().getAppName().getValue());
         deviceEventCreator.setPosition(responseMessage.getPosition());

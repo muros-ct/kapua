@@ -12,7 +12,6 @@
 package org.eclipse.kapua.service.device.registry.lifecycle.internal;
 
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.message.KapuaPayload;
 import org.eclipse.kapua.message.KapuaPosition;
@@ -33,6 +32,8 @@ import org.eclipse.kapua.service.device.registry.event.DeviceEventFactory;
 import org.eclipse.kapua.service.device.registry.event.DeviceEventService;
 import org.eclipse.kapua.service.device.registry.lifecycle.DeviceLifeCycleService;
 
+import javax.inject.Inject;
+
 /**
  * {@link DeviceLifeCycleService} implementation.
  *
@@ -40,6 +41,18 @@ import org.eclipse.kapua.service.device.registry.lifecycle.DeviceLifeCycleServic
  */
 @KapuaProvider
 public class DeviceLifeCycleServiceImpl implements DeviceLifeCycleService {
+
+    @Inject
+    private DeviceRegistryService deviceRegistryService;
+
+    @Inject
+    private DeviceFactory deviceFactory;
+
+    @Inject
+    private DeviceEventService deviceEventService;
+
+    @Inject
+    private DeviceEventFactory deviceEventFactory;
 
     @Override
     public void birth(KapuaId connectionId, KapuaBirthMessage message)
@@ -51,13 +64,10 @@ public class DeviceLifeCycleServiceImpl implements DeviceLifeCycleService {
 
         //
         // Device update
-        KapuaLocator locator = KapuaLocator.getInstance();
-        DeviceRegistryService deviceRegistryService = locator.getService(DeviceRegistryService.class);
         Device device;
         if (deviceId == null) {
             String clientId = channel.getClientId();
 
-            DeviceFactory deviceFactory = locator.getFactory(DeviceFactory.class);
             DeviceCreator deviceCreator = deviceFactory.newCreator(scopeId, clientId);
 
             deviceCreator.setDisplayName(payload.getDisplayName());
@@ -108,8 +118,6 @@ public class DeviceLifeCycleServiceImpl implements DeviceLifeCycleService {
 
         //
         // Event create
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, device.getId(), message.getReceivedOn(), "BIRTH");
 
         deviceEventCreator.setEventMessage(payload.toDisplayString());
@@ -133,12 +141,9 @@ public class DeviceLifeCycleServiceImpl implements DeviceLifeCycleService {
 
         //
         // Device update
-        KapuaLocator locator = KapuaLocator.getInstance();
 
         //
         // Event create
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, deviceId, message.getReceivedOn(), "DEATH");
 
         deviceEventCreator.setReceivedOn(message.getReceivedOn());
@@ -163,14 +168,10 @@ public class DeviceLifeCycleServiceImpl implements DeviceLifeCycleService {
 
         //
         // Device update
-        KapuaLocator locator = KapuaLocator.getInstance();
-        DeviceRegistryService deviceRegistryService = locator.getService(DeviceRegistryService.class);
         Device device = deviceRegistryService.find(scopeId, deviceId);
 
         //
         // Event create
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, device.getId(), message.getReceivedOn(), "MISSING");
 
         deviceEventCreator.setEventMessage(payload.toDisplayString());
@@ -196,14 +197,10 @@ public class DeviceLifeCycleServiceImpl implements DeviceLifeCycleService {
 
         //
         // Device update
-        KapuaLocator locator = KapuaLocator.getInstance();
-        DeviceRegistryService deviceRegistryService = locator.getService(DeviceRegistryService.class);
         Device device = deviceRegistryService.find(scopeId, deviceId);
 
         //
         // Event create
-        DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
-        DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
         DeviceEventCreator deviceEventCreator = deviceEventFactory.newCreator(scopeId, device.getId(), message.getReceivedOn(), "APPLICATION");
 
         deviceEventCreator.setEventMessage(payload.toDisplayString());

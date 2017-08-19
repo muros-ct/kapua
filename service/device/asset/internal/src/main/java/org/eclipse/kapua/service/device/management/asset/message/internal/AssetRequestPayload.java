@@ -13,12 +13,12 @@ package org.eclipse.kapua.service.device.management.asset.message.internal;
 
 import java.io.UnsupportedEncodingException;
 
+import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
 
 import org.eclipse.kapua.commons.util.xml.XmlUtil;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.message.internal.KapuaPayloadImpl;
 import org.eclipse.kapua.service.device.management.asset.DeviceAssetFactory;
 import org.eclipse.kapua.service.device.management.asset.DeviceAssets;
@@ -35,12 +35,14 @@ import org.xml.sax.SAXException;
  */
 public class AssetRequestPayload extends KapuaPayloadImpl implements KapuaRequestPayload {
 
-    private static final DeviceAssetFactory DEVICE_ASSET_FACTORY = KapuaLocator.getInstance().getFactory(DeviceAssetFactory.class);
     private static final DeviceManagementSetting CONFIG = DeviceManagementSetting.getInstance();
     private static final String CHAR_ENCODING = CONFIG.getString(DeviceManagementSettingKey.CHAR_ENCODING);
 
+    @Inject
+    private DeviceAssetFactory deviceAssetFactory;
+
     public DeviceAssets getDeviceAssets() throws JAXBException, XMLStreamException, FactoryConfigurationError, SAXException, UnsupportedEncodingException {
-        DeviceAssets deviceAssets = DEVICE_ASSET_FACTORY.newAssetListResult();
+        DeviceAssets deviceAssets = deviceAssetFactory.newAssetListResult();
         byte[] body = getBody();
         if (body != null && body.length > 0) {
             deviceAssets = XmlUtil.unmarshal(new String(body, CHAR_ENCODING), DeviceAssets.class);
