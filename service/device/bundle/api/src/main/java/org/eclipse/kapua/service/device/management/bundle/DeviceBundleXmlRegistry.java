@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.bundle;
 
-import javax.inject.Inject;
+import org.eclipse.kapua.locator.KapuaLocator;
 
 /**
  * Device bundle xml factory class
@@ -21,8 +21,9 @@ import javax.inject.Inject;
  */
 public class DeviceBundleXmlRegistry {
 
-    @Inject
-    private DeviceBundleFactory factory;
+    private final KapuaLocator locator = KapuaLocator.getInstance();
+
+    private final DeviceBundleFactory factory = locator.getFactory(DeviceBundleFactory.class);
 
     /**
      * Creates a new device bundles list
