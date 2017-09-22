@@ -25,7 +25,11 @@ public enum BrokerSettingKey implements SettingKey {
     /**
      * A URI to a configuration file for providing additional {@link ConnectorDescriptor} configurations
      */
-    CONFIGURATION_URI("broker.connector.descriptor.configuration.uri");
+    CONFIGURATION_URI("broker.connector.descriptor.configuration.uri"),
+    /**
+     * Broker internal IP.
+     */
+    BROKER_NETWORK_IP("broker.ip");
 
     private String key;
 

@@ -12,9 +12,14 @@
  *******************************************************************************/
 package org.eclipse.kapua.broker.core.plugin;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +54,8 @@ import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.KapuaIllegalAccessException;
 import org.eclipse.kapua.broker.core.BrokerDomain;
 import org.eclipse.kapua.broker.core.message.MessageConstants;
+import org.eclipse.kapua.broker.core.setting.BrokerSetting;
+import org.eclipse.kapua.broker.core.setting.BrokerSettingKey;
 import org.eclipse.kapua.commons.metric.MetricServiceFactory;
 import org.eclipse.kapua.commons.metric.MetricsService;
 import org.eclipse.kapua.commons.model.query.predicate.AndPredicate;
@@ -113,6 +120,8 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
     private static final Domain BROKER_DOMAIN = new BrokerDomain();
     private static final Domain DATASTORE_DOMAIN = new DatastoreDomain();
     private static final Domain DEVICE_MANAGEMENT_DOMAIN = new DeviceManagementDomain();
+
+    private static String brokerIpOrHostName;
 
     // login
     private Counter metricLoginSuccess;
@@ -200,6 +209,7 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
         metricPublishMessageSizeNotAllowed = metricsService.getHistogram("security", "publish", "messages", "not_allowed", "size", "bytes");
 
         XmlUtil.setContextProvider(new BrokerJAXBContextProvider());
+        initBrokerIp();
     }
 
     @Override
@@ -359,6 +369,13 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
                     clientId,
                     clientIp);
             DeviceConnection deviceConnection = null;
+
+            final String connectorName = (((TransportConnector) context.getConnector()).getName());
+            final ConnectorDescriptor connectorDescriptor = ConnectorDescriptorProviders.getDescriptor(connectorName);
+            if (connectorDescriptor == null) {
+                throw new IllegalStateException(String.format("Unable to find connector descriptor for connector '%s'", connectorName));
+            }
+
             // 3) check authorization
             DefaultAuthorizationMap authMap = null;
             if (isAdminUser(username)) {
@@ -403,16 +420,16 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
                     DeviceConnectionCreator deviceConnectionCreator = deviceConnectionFactory.newCreator(scopeId);
                     deviceConnectionCreator.setClientId(clientId);
                     deviceConnectionCreator.setClientIp(clientIp);
-                    deviceConnectionCreator.setProtocol("MQTT");
-                    deviceConnectionCreator.setServerIp(null);// TODO to be filled with the proper value
+                    deviceConnectionCreator.setProtocol(connectorDescriptor.getTransportProtocol());
+                    deviceConnectionCreator.setServerIp(brokerIpOrHostName);
                     deviceConnectionCreator.setUserId(userId);
                     deviceConnectionCreator.setUserCouplingMode(ConnectionUserCouplingMode.INHERITED);
                     deviceConnectionCreator.setAllowUserChange(false);
                     deviceConnection = KapuaSecurityUtils.doPrivileged(() -> deviceConnectionService.create(deviceConnectionCreator));
                 } else {
                     deviceConnection.setClientIp(clientIp);
-                    deviceConnection.setProtocol("MQTT");
-                    deviceConnection.setServerIp(null);// TODO to be filled with the proper value
+                    deviceConnection.setProtocol(connectorDescriptor.getTransportProtocol());
+                    deviceConnection.setServerIp(brokerIpOrHostName);
                     deviceConnection.setUserId(userId);
                     deviceConnection.setStatus(DeviceConnectionStatus.CONNECTED);
                     deviceConnection.setAllowUserChange(false);
@@ -441,11 +458,6 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
             }
             logAuthDestinationToLog(authDestinations);
 
-            final String connectorName = (((TransportConnector) context.getConnector()).getName());
-            final ConnectorDescriptor connectorDescriptor = ConnectorDescriptorProviders.getDescriptor(connectorName);
-            if (connectorDescriptor == null) {
-                throw new IllegalStateException(String.format("Unable to find connector descriptor for connector '%s'", connectorName));
-            }
             KapuaSecurityContext securityCtx = new KapuaSecurityContext(principal,
                     authMap,
                     (deviceConnection != null ? deviceConnection.getId() : null),
@@ -497,6 +509,56 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
             loginShiroLogoutTimeContext.stop();
             loginTotalContext.stop();
         }
+    }
+
+    protected void initBrokerIp() {
+        logger.info("Detecting broker ip...");
+        brokerIpOrHostName = getBrokerIpOrHostName();
+        logger.info("Detecting broker ip... DONE");
+    }
+
+    protected String getBrokerIpOrHostName() {
+        // get the server ip from the configuration
+        String brokerIpOrHostName = BrokerSetting.getInstance().getString(BrokerSettingKey.BROKER_NETWORK_IP);
+        // otherwise, if not valued, scan the network devices
+        // WARNING this operation may be heavy and may detect wrong ip so it's preferable to provide the IP via configuration parameter
+        if (StringUtils.isEmpty(brokerIpOrHostName)) {
+            brokerIpOrHostName = getLocalIpFromNetworkInterfaces();
+            if (StringUtils.isEmpty(brokerIpOrHostName)) {
+                logger.info("Detected broker ip ('{}') by scanning the available network adresses.", brokerIpOrHostName);
+            } else {
+                logger.warn("Cannot detected broker ip via configuration parameter or by scanning the available network adresses. Please check your configuration!");
+            }
+        } else {
+            logger.info("Detected broker ip ('{}') via configuration parameter.", brokerIpOrHostName);
+        }
+        return brokerIpOrHostName;
+    }
+
+    protected String getLocalIpFromNetworkInterfaces() {
+        InetAddress publicInetAddress = null;
+        try {
+            for (Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces(); networkInterfaces.hasMoreElements();) {
+                NetworkInterface networkInterface = networkInterfaces.nextElement();
+
+                // scan all the network interfaces
+                for (Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses(); inetAddresses.hasMoreElements();) {
+                    InetAddress inetAddress = (InetAddress) inetAddresses.nextElement();
+                    // return the first local address that is a site address
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                        if (inetAddress.isSiteLocalAddress()) {
+                            return inetAddress.getHostAddress();
+                        } else {
+                            // keep it as last choice
+                            publicInetAddress = inetAddress;
+                        }
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            logger.error("Error acquiring local broker ip ({}). A null value will be set!", e.getMessage(), e);
+        }
+        return (publicInetAddress != null ? publicInetAddress.getHostAddress() : null);
     }
 
     private void enforceDeviceConnectionUserBound(Map<String, Object> options, DeviceConnection deviceConnection, KapuaId scopeId, KapuaId userId) throws KapuaException {
@@ -995,7 +1057,6 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
                 admin ? "a" : "_",
                 topic));
         return entry;
-
     }
 
     protected AuthorizationEntry createAuthorizationEntry(List<String> authDestinations, String topic, KapuaPrincipal principal) {
@@ -1010,7 +1071,6 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
         entry.setAdminACLs(adminACLs);
         addAuthDestinationToLog(authDestinations, MessageFormat.format(AclConstants.PERMISSION_LOG, "r", "_", "_", topic));
         return entry;
-
     }
 
     private void addAuthDestinationToLog(List<String> authDestinations, String message) {
