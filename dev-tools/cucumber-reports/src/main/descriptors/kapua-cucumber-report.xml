@@ -70,6 +70,21 @@
         </fileSet>
 
         <fileSet>
+            <outputDirectory>device-broker-ipConfigFile-i9n</outputDirectory>
+            <directory>../../qa/target/cucumber/DeviceBrokerIpConfigFileI9n</directory>
+        </fileSet>
+
+        <fileSet>
+            <outputDirectory>device-broker-ipSysEnv-i9n</outputDirectory>
+            <directory>../../qa/target/cucumber/DeviceBrokerIpSysEnvI9n</directory>
+        </fileSet>
+
+        <fileSet>
+            <outputDirectory>device-broker-ipUndefined-i9n</outputDirectory>
+            <directory>../../qa/target/cucumber/DeviceBrokerIpUndefinedI9n</directory>
+        </fileSet>
+
+        <fileSet>
             <outputDirectory>device-broker-ACL-i9n</outputDirectory>
             <directory>../../qa/target/cucumber/BrokerACLI9n</directory>
         </fileSet>

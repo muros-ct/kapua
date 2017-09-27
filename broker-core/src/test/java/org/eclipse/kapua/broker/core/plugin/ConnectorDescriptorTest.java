@@ -12,6 +12,7 @@
 package org.eclipse.kapua.broker.core.plugin;
 
 import static org.eclipse.kapua.broker.core.plugin.Tests.runWithProperties;
+import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ import org.eclipse.kapua.broker.core.setting.BrokerSetting;
 import org.eclipse.kapua.broker.core.setting.BrokerSettingKey;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ConnectorDescriptorTest {
@@ -133,8 +135,8 @@ public class ConnectorDescriptorTest {
             ConnectorDescriptor descriptor = provider.getDescriptor("mqtt");
             Assert.assertNotNull(descriptor);
 
-            Assert.assertEquals(org.eclipse.kapua.service.device.call.message.kura.lifecycle.KuraAppsMessage.class, descriptor.getDeviceClass(MessageType.APP));
-            Assert.assertEquals(org.eclipse.kapua.message.device.lifecycle.KapuaAppsMessage.class, descriptor.getKapuaClass(MessageType.APP));
+            assertEquals(org.eclipse.kapua.service.device.call.message.kura.lifecycle.KuraAppsMessage.class, descriptor.getDeviceClass(MessageType.APP));
+            assertEquals(org.eclipse.kapua.message.device.lifecycle.KapuaAppsMessage.class, descriptor.getKapuaClass(MessageType.APP));
 
             Assert.assertNull(descriptor.getDeviceClass(MessageType.DATA));
             Assert.assertNull(descriptor.getKapuaClass(MessageType.DATA));
@@ -162,5 +164,39 @@ public class ConnectorDescriptorTest {
         properties.put(BrokerSettingKey.CONFIGURATION_URI.key(), "");
 
         runWithProperties(properties, DefaultConnectorDescriptionProvider::new);
+    }
+
+    @Test
+    public void testBrokerIpOrHostNameConfigFile() throws Exception {
+        System.setProperty("kapua.config.url", "broker.setting/kapua-broker-setting-1.properties");
+
+        KapuaSecurityBrokerFilter kapuaSecBrokerFilter = new KapuaSecurityBrokerFilter(null);
+        String ipOrHostName = kapuaSecBrokerFilter.getBrokerIpOrHostName();
+        assertEquals("192.168.33.10", ipOrHostName);
+    }
+
+    @Ignore
+    @Test(expected = Exception.class)
+    public void testBrokerIpOrHostNameEmptyConfigFile() throws Exception {
+        System.setProperty("kapua.config.url", "broker.setting/kapua-broker-setting-2.properties");
+
+        KapuaSecurityBrokerFilter kapuaSecBrokerFilter = new KapuaSecurityBrokerFilter(null);
+        String ipOrHostName = kapuaSecBrokerFilter.getBrokerIpOrHostName();
+    }
+
+    @Test
+    public void testBrokerIpOrHostNameEnvProperty() throws Exception {
+        System.setProperty("broker.ip", "192.168.33.10");
+
+        KapuaSecurityBrokerFilter kapuaSecBrokerFilter = new KapuaSecurityBrokerFilter(null);
+        String ipOrHostName = kapuaSecBrokerFilter.getBrokerIpOrHostName();
+        assertEquals("192.168.33.10", ipOrHostName);
+    }
+
+    @Ignore
+    @Test(expected = Exception.class)
+    public void testBrokerIpOrHostNameNoEnvProperty() throws Exception {
+        KapuaSecurityBrokerFilter kapuaSecBrokerFilter = new KapuaSecurityBrokerFilter(null);
+        String ipOrHostName = kapuaSecBrokerFilter.getBrokerIpOrHostName();
     }
 }
