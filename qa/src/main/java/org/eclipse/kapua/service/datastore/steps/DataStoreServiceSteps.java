@@ -103,7 +103,9 @@ import org.eclipse.kapua.service.device.registry.Device;
 import org.eclipse.kapua.service.device.registry.DeviceCreator;
 import org.eclipse.kapua.service.device.registry.DeviceFactory;
 import org.eclipse.kapua.service.device.registry.DeviceRegistryService;
+import org.eclipse.kapua.test.KapuaTest;
 import org.eclipse.kapua.test.steps.AbstractKapuaSteps;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -275,7 +277,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
                 break;
             }
             default: {
-                fail(String.format("Unknown metric type [%s]", tmpMet.getType()));
+                Assert.fail(String.format("Unknown metric type [%s]", tmpMet.getType()));
                 break;
             }
             }
@@ -608,13 +610,13 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
         ChannelInfoListResult tmpList = (ChannelInfoListResult) stepData.get(lstKey);
         Set<String> infoTopics = new HashSet<>();
 
-        assertEquals("Wrong number of topics found!", tmpList.getSize(), topics.size());
+        Assert.assertEquals("Wrong number of topics found!", tmpList.getSize(), topics.size());
 
         for (ChannelInfo tmpInfo : tmpList.getItems()) {
             infoTopics.add(tmpInfo.getName());
         }
         for (TestTopic tmpTop : topics) {
-            assertTrue(String.format("The topic [%s] was not found!", tmpTop.getTopic()), infoTopics.contains(tmpTop.getTopic()));
+            Assert.assertTrue(String.format("The topic [%s] was not found!", tmpTop.getTopic()), infoTopics.contains(tmpTop.getTopic()));
         }
     }
 
@@ -631,7 +633,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     @Then("^There (?:is|are) exactly (\\d+) channel(?:|s) in the list \"(.*)\"$")
     public void checkNumberOfQueriedChannels(int cnt, String lstKey) {
 
-        assertEquals(cnt, ((ChannelInfoListResult) stepData.get(lstKey)).getSize());
+        Assert.assertEquals(cnt, ((ChannelInfoListResult) stepData.get(lstKey)).getSize());
     }
 
     @Then("^Client \"(.+)\" first published on a channel in the list \"(.+)\" on \"(.+)\"$")
@@ -642,11 +644,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         for (ChannelInfo tmpInfo : chnList.getItems()) {
             if (tmpInfo.getClientId().equals(clientId)) {
-                assertEquals(tmpCaptured, tmpInfo.getFirstMessageOn());
+                Assert.assertEquals(tmpCaptured, tmpInfo.getFirstMessageOn());
                 return;
             }
         }
-        fail(String.format("No channel matches the client id [%s]", clientId));
+        Assert.fail(String.format("No channel matches the client id [%s]", clientId));
     }
 
     @Then("^Client \"(.+)\" last published on a channel in the list \"(.+)\" on \"(.+)\"$")
@@ -657,11 +659,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         for (ChannelInfo tmpInfo : chnList.getItems()) {
             if (tmpInfo.getClientId().equals(clientId)) {
-                assertEquals(tmpCaptured, tmpInfo.getLastMessageOn());
+                Assert.assertEquals(tmpCaptured, tmpInfo.getLastMessageOn());
                 return;
             }
         }
-        fail(String.format("No channel matches the client id [%s]", clientId));
+        Assert.fail(String.format("No channel matches the client id [%s]", clientId));
     }
 
     @When("^I delete all channels from the list \"(.*)\"$")
@@ -787,7 +789,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void checkNumberOfQueriedMetrics(int cnt, String lstKey) {
 
         MetricInfoListResult tmpResults = (MetricInfoListResult) stepData.get(lstKey);
-        assertEquals(cnt, tmpResults.getSize());
+        Assert.assertEquals(cnt, tmpResults.getSize());
     }
 
     @Then("^Client \"(.+)\" first published a metric in the list \"(.+)\" on \"(.+)\"$")
@@ -798,11 +800,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         for (MetricInfo tmpMet : metList.getItems()) {
             if (tmpMet.getClientId().equals(clientId)) {
-                assertEquals(tmpMet.getFirstMessageOn(), tmpCaptured);
+                Assert.assertEquals(tmpMet.getFirstMessageOn(), tmpCaptured);
                 return;
             }
         }
-        fail(String.format("No metric matches the client id [%s]", clientId));
+        Assert.fail(String.format("No metric matches the client id [%s]", clientId));
     }
 
     @Then("^Client \"(.+)\" last published a metric in the list \"(.+)\" on \"(.+)\"$")
@@ -813,11 +815,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         for (MetricInfo tmpMet : metList.getItems()) {
             if (tmpMet.getClientId().equals(clientId)) {
-                assertEquals(tmpMet.getLastMessageOn(), tmpCaptured);
+                Assert.assertEquals(tmpMet.getLastMessageOn(), tmpCaptured);
                 return;
             }
         }
-        fail(String.format("No metric matches the client id [%s]", clientId));
+        Assert.fail(String.format("No metric matches the client id [%s]", clientId));
     }
 
     @Then("^The metric \"(.+)\" was first published in the list \"(.+)\" on \"(.+)\"$")
@@ -828,11 +830,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         for (MetricInfo tmpMet : metList.getItems()) {
             if (tmpMet.getName().equals(metric)) {
-                assertEquals(tmpMet.getFirstMessageOn(), tmpCaptured);
+                Assert.assertEquals(tmpMet.getFirstMessageOn(), tmpCaptured);
                 return;
             }
         }
-        fail(String.format("There is no metric [%s]", metric));
+        Assert.fail(String.format("There is no metric [%s]", metric));
     }
 
     @Then("^The metric \"(.+)\" was last published in the list \"(.+)\" on \"(.+)\"$")
@@ -843,11 +845,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         for (MetricInfo tmpMet : metList.getItems()) {
             if (tmpMet.getName().equals(metric)) {
-                assertEquals(tmpMet.getLastMessageOn(), tmpCaptured);
+                Assert.assertEquals(tmpMet.getLastMessageOn(), tmpCaptured);
                 return;
             }
         }
-        fail(String.format("There is no metric [%s]", metric));
+        Assert.fail(String.format("There is no metric [%s]", metric));
     }
 
     @When("^I delete all metrics from the list \"(.*)\"$")
@@ -913,7 +915,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     @Then("^There (?:is|are) exactly (\\d+) client(?:|s) in the list \"(.*)\"$")
     public void checkNumberOfQueriedClients(int cnt, String lstKey) {
 
-        assertEquals(cnt, ((ClientInfoListResult) stepData.get(lstKey)).getSize());
+        Assert.assertEquals(cnt, ((ClientInfoListResult) stepData.get(lstKey)).getSize());
     }
 
     @Then("^Client \"(.+)\" first message in the list \"(.+)\" is on \"(.+)\"$")
@@ -924,11 +926,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         for (ClientInfo tmpInfo : cliList.getItems()) {
             if (tmpInfo.getClientId().equals(clientId)) {
-                assertEquals(tmpInfo.getFirstMessageOn(), tmpCaptured);
+                Assert.assertEquals(tmpInfo.getFirstMessageOn(), tmpCaptured);
                 return;
             }
         }
-        fail(String.format("No client info item matches the client id [%s]", clientId));
+        Assert.fail(String.format("No client info item matches the client id [%s]", clientId));
     }
 
     @Then("^Client \"(.+)\" last message in the list \"(.+)\" is on \"(.+)\"$")
@@ -939,11 +941,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         for (ClientInfo tmpInfo : cliList.getItems()) {
             if (tmpInfo.getClientId().equals(clientId)) {
-                assertEquals(tmpInfo.getLastMessageOn(), tmpCaptured);
+                Assert.assertEquals(tmpInfo.getLastMessageOn(), tmpCaptured);
                 return;
             }
         }
-        fail(String.format("No client info item matches the client id [%s]", clientId));
+        Assert.fail(String.format("No client info item matches the client id [%s]", clientId));
     }
 
     @When("^I delete all clients from the list \"(.*)\"$")
@@ -978,13 +980,13 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void dontFindMessage() {
 
         DatastoreMessage message = (DatastoreMessage) stepData.get("message");
-        assertNull(message);
+        Assert.assertNull(message);
     }
 
     @Then("^Message \"(.*)\" is null$")
     public void checkThatTheMessageIsActuallyNull(String msgKey) {
 
-        assertNull(stepData.get(msgKey));
+        Assert.assertNull(stepData.get(msgKey));
     }
 
     @Then("^The datastore message \"(.*)\" matches the prepared message \"(.*)\"$")
@@ -1041,7 +1043,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void dontFindChannelInfo() {
 
         ChannelInfo channelInfo = (ChannelInfo) stepData.get("channelInfo");
-        assertNull(channelInfo);
+        Assert.assertNull(channelInfo);
     }
 
     @SuppressWarnings("unchecked")
@@ -1066,7 +1068,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void dontFindMetricInfo() {
 
         MetricInfo metricInfo = (MetricInfo) stepData.get("metricInfo");
-        assertNull(metricInfo);
+        Assert.assertNull(metricInfo);
     }
 
     @Then("^The metric info items \"(.+)\" match the prepared messages in \"(.+)\"$")
@@ -1090,7 +1092,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void dontFindClientInfo() {
 
         ClientInfo clientInfo = (ClientInfo) stepData.get("clientInfo");
-        assertNull(clientInfo);
+        Assert.assertNull(clientInfo);
     }
 
     @Then("^The client info items \"(.+)\" match the prepared messages in \"(.+)\"$")
@@ -1136,7 +1138,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void getEmptyMessageListResult() {
 
         MessageListResult result = (MessageListResult) stepData.get("messageListResult");
-        assertTrue(result.isEmpty());
+        Assert.assertTrue(result.isEmpty());
     }
 
     @When("^I count for data message$")
@@ -1151,7 +1153,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void getDesiredMessageCountResult(int desiredCount) {
 
         long count = (long) stepData.get("messageCountResult");
-        assertEquals(desiredCount, count);
+        Assert.assertEquals(desiredCount, count);
     }
 
     @Given("^I create channel info query for current account with limit (\\d+)$")
@@ -1203,7 +1205,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void getEmptyChannelInfoListResult() {
 
         ChannelInfoListResult result = (ChannelInfoListResult) stepData.get("channelInfoListResult");
-        assertTrue(result.isEmpty());
+        Assert.assertTrue(result.isEmpty());
     }
 
     @When("^I count for channel info$")
@@ -1218,7 +1220,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void getDesiredChannelInfoCountResult(int desiredCount) {
 
         long count = (long) stepData.get("channelInfoCountResult");
-        assertEquals(desiredCount, count);
+        Assert.assertEquals(desiredCount, count);
     }
 
     @Given("^I create metric info query for current account with limit (\\d+)$")
@@ -1241,7 +1243,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void getEmptyMetricInfoListResult() {
 
         MetricInfoListResult result = (MetricInfoListResult) stepData.get("metricInfoListResult");
-        assertTrue(result.isEmpty());
+        Assert.assertTrue(result.isEmpty());
     }
 
     @When("^I delete the metric info data based on the last query$")
@@ -1270,7 +1272,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void getDesiredMetricInfoCountResult(int desiredCount) {
 
         long count = (long) stepData.get("metricInfoCountResult");
-        assertEquals(desiredCount, count);
+        Assert.assertEquals(desiredCount, count);
     }
 
     @Given("^I create client info query for current account with limit (\\d+)$")
@@ -1293,7 +1295,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void getEmptyClientInfoListResult() {
 
         ClientInfoListResult result = (ClientInfoListResult) stepData.get("clientInfoListResult");
-        assertTrue(result.isEmpty());
+        Assert.assertTrue(result.isEmpty());
     }
 
     @When("^I delete the client info data based on the last query$")
@@ -1322,12 +1324,12 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     public void getDesiredClientInfoCountResult(int desiredCount) {
 
         long count = (long) stepData.get("clientInfoCountResult");
-        assertEquals(desiredCount, count);
+        Assert.assertEquals(desiredCount, count);
     }
 
     @Then("^The value of \"(.*)\" is exactly (\\d+)$")
     public void checkValueOfIntegerItem(String valKey, long value) {
-        assertEquals(value, (long) stepData.get(valKey));
+        Assert.assertEquals(value, (long) stepData.get(valKey));
     }
 
     @Then("^The messages in the list \"(.*)\" are stored in the default order$")
@@ -1351,7 +1353,7 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
         KapuaDataPayloadImpl tmpTestPayload = new KapuaDataPayloadImpl();
 
         byte[] randomPayload = new byte[128];
-        random.nextBytes(randomPayload);
+        KapuaTest.random.nextBytes(randomPayload);
         String stringPayload = "Hello first message on!";
         byte[] tmpByteArrayPayload = ArrayUtils.addAll(randomPayload, stringPayload.getBytes());
         tmpTestPayload.setBody(tmpByteArrayPayload);
@@ -1370,14 +1372,14 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
         Date dateSyd = dfSyd.parse("01/04/2017 03:00:00");
 
         Map<String, Object> tmpMetrics = new HashMap<String, Object>();
-        tmpMetrics.put("float", random.nextFloat() * 100);
-        tmpMetrics.put("float_int", Float.valueOf(random.nextInt()));
-        tmpMetrics.put("double", random.nextDouble() * 100);
-        tmpMetrics.put("double_int", Float.valueOf(random.nextInt()));
-        tmpMetrics.put("integer", random.nextInt());
-        tmpMetrics.put("long", random.nextLong());
-        tmpMetrics.put("long_int", (long)random.nextInt());
-        tmpMetrics.put("string_value", Integer.toString(random.nextInt()));
+        tmpMetrics.put("float", KapuaTest.random.nextFloat() * 100);
+        tmpMetrics.put("float_int", Float.valueOf(KapuaTest.random.nextInt()));
+        tmpMetrics.put("double", KapuaTest.random.nextDouble() * 100);
+        tmpMetrics.put("double_int", Float.valueOf(KapuaTest.random.nextInt()));
+        tmpMetrics.put("integer", KapuaTest.random.nextInt());
+        tmpMetrics.put("long", KapuaTest.random.nextLong());
+        tmpMetrics.put("long_int", (long) KapuaTest.random.nextInt());
+        tmpMetrics.put("string_value", Integer.toString(KapuaTest.random.nextInt()));
         tmpMetrics.put("date_value_brussels", dateBr);
         tmpMetrics.put("date_value_la", dateLA);
         tmpMetrics.put("date_value_hk", dateHK);
@@ -1390,14 +1392,14 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     private KapuaPosition createRandomTestPosition(Date timeStamp) {
 
         KapuaPositionImpl tmpPosition = new KapuaPositionImpl();
-        tmpPosition.setAltitude(20000.0 * random.nextDouble()); // 0 .. 20000
-        tmpPosition.setHeading(360.0 * random.nextDouble()); // 0 .. 360
-        tmpPosition.setLatitude(180.0 * (random.nextDouble() - 0.5)); // -90 .. 90
-        tmpPosition.setLongitude(360.0 * (random.nextDouble() - 0.5)); // -180 .. 180
-        tmpPosition.setPrecision(100.0 * random.nextDouble()); // 0 .. 100
-        tmpPosition.setSatellites(random.nextInt(30)); // 0 .. 30
-        tmpPosition.setSpeed(500.0 * random.nextDouble()); // 0 .. 500
-        tmpPosition.setStatus(random.nextInt(10)); // 0 .. 10
+        tmpPosition.setAltitude(20000.0 * KapuaTest.random.nextDouble()); // 0 .. 20000
+        tmpPosition.setHeading(360.0 * KapuaTest.random.nextDouble()); // 0 .. 360
+        tmpPosition.setLatitude(180.0 * (KapuaTest.random.nextDouble() - 0.5)); // -90 .. 90
+        tmpPosition.setLongitude(360.0 * (KapuaTest.random.nextDouble() - 0.5)); // -180 .. 180
+        tmpPosition.setPrecision(100.0 * KapuaTest.random.nextDouble()); // 0 .. 100
+        tmpPosition.setSatellites(KapuaTest.random.nextInt(30)); // 0 .. 30
+        tmpPosition.setSpeed(500.0 * KapuaTest.random.nextDouble()); // 0 .. 500
+        tmpPosition.setStatus(KapuaTest.random.nextInt(10)); // 0 .. 10
         tmpPosition.setTimestamp(timeStamp);
 
         return tmpPosition;
@@ -1460,9 +1462,9 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
             return true;
         }
         if ((parts1 != null) && (parts2 != null)) {
-            assertEquals(parts1.size(), parts2.size());
+            Assert.assertEquals(parts1.size(), parts2.size());
             for (int i = 0; i < parts1.size(); i++) {
-                assertEquals(parts1.get(i), parts2.get(i));
+                Assert.assertEquals(parts1.get(i), parts2.get(i));
             }
         }
         return true;
@@ -1470,12 +1472,12 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
     private boolean areMetricsEqual(Map<String, Object> properties1, Map<String, Object> properties2) {
 
-        assertEquals(properties1.size(), properties2.size());
+        Assert.assertEquals(properties1.size(), properties2.size());
 
         if (properties1.size() > 0) {
             for (String key : properties1.keySet()) {
-                assertTrue(properties2.containsKey(key));
-                assertEquals(properties1.get(key), properties2.get(key));
+                Assert.assertTrue(properties2.containsKey(key));
+                Assert.assertEquals(properties1.get(key), properties2.get(key));
             }
         }
         return true;
@@ -1492,11 +1494,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         ChannelInfoListResult channelInfoList = channelInfoRegistryService.query(channelInfoQuery);
 
-        assertNotNull("Cannot find the channel info registry!", channelInfoList);
-        assertNotEquals("Cannot find the channel info registry!", channelInfoList.getSize(), 0);
-        assertNotNull("Cannot find the channel info registry!", channelInfoList.getFirstItem());
-        assertEquals("Wrong channel info message id!", channelInfoList.getFirstItem().getFirstMessageId(), msgId);
-        assertEquals("Wrong channel info message on!", channelInfoList.getFirstItem().getFirstMessageOn(), storedOn);
+        Assert.assertNotNull("Cannot find the channel info registry!", channelInfoList);
+        Assert.assertNotEquals("Cannot find the channel info registry!", channelInfoList.getSize(), 0);
+        Assert.assertNotNull("Cannot find the channel info registry!", channelInfoList.getFirstItem());
+        Assert.assertEquals("Wrong channel info message id!", channelInfoList.getFirstItem().getFirstMessageId(), msgId);
+        Assert.assertEquals("Wrong channel info message on!", channelInfoList.getFirstItem().getFirstMessageOn(), storedOn);
     }
 
     private void isClientForFirstMessageInStoreOK(StorableId msgId, Date storedOn) throws KapuaException {
@@ -1510,11 +1512,11 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         ClientInfoListResult clientInfoList = clientInfoRegistryService.query(clientInfoQuery);
 
-        assertNotNull("Cannot find the client info registry!", clientInfoList);
-        assertNotEquals("Cannot find the client info registry!", clientInfoList.getSize(), 0);
-        assertNotNull("Cannot find the client info registry!", clientInfoList.getFirstItem());
-        assertEquals("Wrong client info message id!", clientInfoList.getFirstItem().getFirstMessageId(), msgId);
-        assertEquals("Wrong client info message on!", clientInfoList.getFirstItem().getFirstMessageOn(), storedOn);
+        Assert.assertNotNull("Cannot find the client info registry!", clientInfoList);
+        Assert.assertNotEquals("Cannot find the client info registry!", clientInfoList.getSize(), 0);
+        Assert.assertNotNull("Cannot find the client info registry!", clientInfoList.getFirstItem());
+        Assert.assertEquals("Wrong client info message id!", clientInfoList.getFirstItem().getFirstMessageId(), msgId);
+        Assert.assertEquals("Wrong client info message on!", clientInfoList.getFirstItem().getFirstMessageOn(), storedOn);
     }
 
     private void isMetricForFirstMessageInStoreOK(StorableId msgId, Date storedOn) throws KapuaException {
@@ -1528,24 +1530,24 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
 
         MetricInfoListResult metricInfoList = metricInfoRegistryService.query(metricInfoQuery);
 
-        assertNotNull("Cannot find the metric info registry!", metricInfoList);
-        assertNotEquals("Cannot find the metric info registry!", metricInfoList.getSize(), 0);
-        assertNotNull("Cannot find the metric info registry!", metricInfoList.getFirstItem());
-        assertEquals("Wrong metric info message id!", metricInfoList.getFirstItem().getFirstMessageId(), msgId);
-        assertEquals("Wrong metric info message on!", metricInfoList.getFirstItem().getFirstMessageOn(), storedOn);
+        Assert.assertNotNull("Cannot find the metric info registry!", metricInfoList);
+        Assert.assertNotEquals("Cannot find the metric info registry!", metricInfoList.getSize(), 0);
+        Assert.assertNotNull("Cannot find the metric info registry!", metricInfoList.getFirstItem());
+        Assert.assertEquals("Wrong metric info message id!", metricInfoList.getFirstItem().getFirstMessageId(), msgId);
+        Assert.assertEquals("Wrong metric info message on!", metricInfoList.getFirstItem().getFirstMessageOn(), storedOn);
     }
 
     private boolean arePositionsEqual(KapuaPosition position1, KapuaPosition position2) {
 
-        assertEquals(position1.getAltitude(), position2.getAltitude());
-        assertEquals(position1.getHeading(), position2.getHeading());
-        assertEquals(position1.getLatitude(), position2.getLatitude());
-        assertEquals(position1.getLongitude(), position2.getLongitude());
-        assertEquals(position1.getPrecision(), position2.getPrecision());
-        assertEquals(position1.getSatellites(), position2.getSatellites());
-        assertEquals(position1.getSpeed(), position2.getSpeed());
-        assertEquals(position1.getStatus(), position2.getStatus());
-        assertEquals(position1.getTimestamp(), position2.getTimestamp());
+        Assert.assertEquals(position1.getAltitude(), position2.getAltitude());
+        Assert.assertEquals(position1.getHeading(), position2.getHeading());
+        Assert.assertEquals(position1.getLatitude(), position2.getLatitude());
+        Assert.assertEquals(position1.getLongitude(), position2.getLongitude());
+        Assert.assertEquals(position1.getPrecision(), position2.getPrecision());
+        Assert.assertEquals(position1.getSatellites(), position2.getSatellites());
+        Assert.assertEquals(position1.getSpeed(), position2.getSpeed());
+        Assert.assertEquals(position1.getStatus(), position2.getStatus());
+        Assert.assertEquals(position1.getTimestamp(), position2.getTimestamp());
         return true;
     }
 
@@ -1570,17 +1572,17 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     // Check whether the message that was inserted into the message store matches the originally prepared message
     private boolean checkThatTheInsertedMessageMatchesTheOriginal(KapuaDataMessage origMsg, DatastoreMessage foundMsg) throws KapuaException {
 
-        assertTrue(areSemanticPartsEqual(origMsg.getChannel().getSemanticParts(), foundMsg.getChannel().getSemanticParts()));
+        Assert.assertTrue(areSemanticPartsEqual(origMsg.getChannel().getSemanticParts(), foundMsg.getChannel().getSemanticParts()));
         if (origMsg.getPayload() != null) {
-            assertArrayEquals(origMsg.getPayload().getBody(), foundMsg.getPayload().getBody());
-            assertTrue(areMetricsEqual(origMsg.getPayload().getMetrics(), foundMsg.getPayload().getMetrics()));
+            Assert.assertArrayEquals(origMsg.getPayload().getBody(), foundMsg.getPayload().getBody());
+            Assert.assertTrue(areMetricsEqual(origMsg.getPayload().getMetrics(), foundMsg.getPayload().getMetrics()));
         }
-        assertTrue(arePositionsEqual(origMsg.getPosition(), foundMsg.getPosition()));
-        assertTrue(foundMsg.getTimestamp().compareTo(origMsg.getReceivedOn()) >= 0);
-        assertTrue(foundMsg.getTimestamp().compareTo(new Date(origMsg.getReceivedOn().getTime() + 10000)) <= 0);
-        assertEquals(origMsg.getCapturedOn(), foundMsg.getCapturedOn());
-        assertEquals(origMsg.getSentOn(), foundMsg.getSentOn());
-        assertEquals(origMsg.getReceivedOn(), foundMsg.getReceivedOn());
+        Assert.assertTrue(arePositionsEqual(origMsg.getPosition(), foundMsg.getPosition()));
+        Assert.assertTrue(foundMsg.getTimestamp().compareTo(origMsg.getReceivedOn()) >= 0);
+        Assert.assertTrue(foundMsg.getTimestamp().compareTo(new Date(origMsg.getReceivedOn().getTime() + 10000)) <= 0);
+        Assert.assertEquals(origMsg.getCapturedOn(), foundMsg.getCapturedOn());
+        Assert.assertEquals(origMsg.getSentOn(), foundMsg.getSentOn());
+        Assert.assertEquals(origMsg.getReceivedOn(), foundMsg.getReceivedOn());
 
         return true;
     }
@@ -1588,17 +1590,17 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     // Check that two datastore messages match
     private boolean checkThatDatastoreMessagesMatch(DatastoreMessage firstMsg, DatastoreMessage secondMsg) throws KapuaException {
 
-        assertEquals(firstMsg.getDatastoreId().toString(), secondMsg.getDatastoreId().toString());
-        assertTrue(areSemanticPartsEqual(firstMsg.getChannel().getSemanticParts(), secondMsg.getChannel().getSemanticParts()));
+        Assert.assertEquals(firstMsg.getDatastoreId().toString(), secondMsg.getDatastoreId().toString());
+        Assert.assertTrue(areSemanticPartsEqual(firstMsg.getChannel().getSemanticParts(), secondMsg.getChannel().getSemanticParts()));
         if ((firstMsg.getPayload() != null) || (secondMsg.getPayload() != null)) {
-            assertArrayEquals(firstMsg.getPayload().getBody(), secondMsg.getPayload().getBody());
-            assertTrue(areMetricsEqual(firstMsg.getPayload().getMetrics(), secondMsg.getPayload().getMetrics()));
+            Assert.assertArrayEquals(firstMsg.getPayload().getBody(), secondMsg.getPayload().getBody());
+            Assert.assertTrue(areMetricsEqual(firstMsg.getPayload().getMetrics(), secondMsg.getPayload().getMetrics()));
         }
-        assertTrue(arePositionsEqual(firstMsg.getPosition(), secondMsg.getPosition()));
-        assertEquals(firstMsg.getTimestamp(), secondMsg.getTimestamp());
-        assertEquals(firstMsg.getCapturedOn(), secondMsg.getCapturedOn());
-        assertEquals(firstMsg.getSentOn(), secondMsg.getSentOn());
-        assertEquals(firstMsg.getReceivedOn(), secondMsg.getReceivedOn());
+        Assert.assertTrue(arePositionsEqual(firstMsg.getPosition(), secondMsg.getPosition()));
+        Assert.assertEquals(firstMsg.getTimestamp(), secondMsg.getTimestamp());
+        Assert.assertEquals(firstMsg.getCapturedOn(), secondMsg.getCapturedOn());
+        Assert.assertEquals(firstMsg.getSentOn(), secondMsg.getSentOn());
+        Assert.assertEquals(firstMsg.getReceivedOn(), secondMsg.getReceivedOn());
 
         return true;
     }
@@ -1612,8 +1614,8 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
         Set<String> infoTopics = new HashSet<>();
         Set<String> infoClients = new HashSet<>();
 
-        assertNotNull("No channel info data!", chnInfo);
-        assertNotNull("No messages to compare to!", msgLst);
+        Assert.assertNotNull("No channel info data!", chnInfo);
+        Assert.assertNotNull("No messages to compare to!", msgLst);
 
         for (KapuaDataMessage tmpMsg : msgLst) {
             msgClients.add(tmpMsg.getClientId());
@@ -1624,15 +1626,15 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
             infoTopics.add(tmpInfo.getName());
         }
 
-        assertEquals("The number of clients does not match!", msgClients.size(), infoClients.size());
-        assertEquals("The number of topics does not match!", msgTopics.size(), infoTopics.size());
+        Assert.assertEquals("The number of clients does not match!", msgClients.size(), infoClients.size());
+        Assert.assertEquals("The number of topics does not match!", msgTopics.size(), infoTopics.size());
 
         for (String tmpTopic : msgTopics) {
-            assertTrue(String.format("The topic [%s] is not found in the info list!", tmpTopic), infoTopics.contains(tmpTopic));
+            Assert.assertTrue(String.format("The topic [%s] is not found in the info list!", tmpTopic), infoTopics.contains(tmpTopic));
         }
 
         for (String tmpClient : msgClients) {
-            assertTrue(String.format("The client id [%s] is not found in the info list!", tmpClient), infoClients.contains(tmpClient));
+            Assert.assertTrue(String.format("The client id [%s] is not found in the info list!", tmpClient), infoClients.contains(tmpClient));
         }
     }
 
@@ -1645,8 +1647,8 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
         Set<String> infoMetrics = new HashSet<>();
         Set<String> infoClients = new HashSet<>();
 
-        assertNotNull("No channel info data!", metInfo);
-        assertNotNull("No messages to compare to!", msgLst);
+        Assert.assertNotNull("No channel info data!", metInfo);
+        Assert.assertNotNull("No messages to compare to!", msgLst);
 
         for (KapuaDataMessage tmpMsg : msgLst) {
             msgClients.add(tmpMsg.getClientId());
@@ -1659,15 +1661,15 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
             infoMetrics.add(tmpMet.getName());
         }
 
-        assertEquals("The number of clients does not match!", msgClients.size(), infoClients.size());
-        assertEquals("The number of topics does not match!", msgMetrics.size(), infoMetrics.size());
+        Assert.assertEquals("The number of clients does not match!", msgClients.size(), infoClients.size());
+        Assert.assertEquals("The number of topics does not match!", msgMetrics.size(), infoMetrics.size());
 
         for (String tmpMetric : msgMetrics) {
-            assertTrue(String.format("The topic [%s] is not found in the info list!", tmpMetric), infoMetrics.contains(tmpMetric));
+            Assert.assertTrue(String.format("The topic [%s] is not found in the info list!", tmpMetric), infoMetrics.contains(tmpMetric));
         }
 
         for (String tmpClient : msgClients) {
-            assertTrue(String.format("The client id [%s] is not found in the info list!", tmpClient), infoClients.contains(tmpClient));
+            Assert.assertTrue(String.format("The client id [%s] is not found in the info list!", tmpClient), infoClients.contains(tmpClient));
         }
     }
 
@@ -1678,8 +1680,8 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
         Set<String> msgClients = new HashSet<>();
         Set<String> infoClients = new HashSet<>();
 
-        assertNotNull("No client info data!", cliInfo);
-        assertNotNull("No messages to compare to!", msgLst);
+        Assert.assertNotNull("No client info data!", cliInfo);
+        Assert.assertNotNull("No messages to compare to!", msgLst);
 
         for (KapuaDataMessage tmpMsg : msgLst) {
             msgClients.add(tmpMsg.getClientId());
@@ -1688,10 +1690,10 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
             infoClients.add(tmpClient.getClientId());
         }
 
-        assertEquals("The number of clients does not match!", msgClients.size(), infoClients.size());
+        Assert.assertEquals("The number of clients does not match!", msgClients.size(), infoClients.size());
 
         for (String tmpClient : msgClients) {
-            assertTrue(String.format("The client id [%s] is not found in the info list!", tmpClient), infoClients.contains(tmpClient));
+            Assert.assertTrue(String.format("The client id [%s] is not found in the info list!", tmpClient), infoClients.contains(tmpClient));
         }
     }
 
@@ -1810,10 +1812,10 @@ public class DataStoreServiceSteps extends AbstractKapuaSteps {
     private static <T extends Comparable<T>> void checkNextValueCoherence(final SortField field, final T currentValue, final T previousValue) {
 
         if (SortDirection.ASC.equals(field.getSortDirection())) {
-            assertTrue(String.format("The field [%s] is not correctly ordered as [%s] (%s -> %s)!", field.getField(), field.getSortDirection(), currentValue, previousValue),
+            Assert.assertTrue(String.format("The field [%s] is not correctly ordered as [%s] (%s -> %s)!", field.getField(), field.getSortDirection(), currentValue, previousValue),
                     currentValue.compareTo(previousValue) > 0);
         } else {
-            assertTrue(String.format("The field [%s] is not correctly ordered as [%s] (%s -> %s)!", field.getField(), field.getSortDirection(), currentValue, previousValue),
+            Assert.assertTrue(String.format("The field [%s] is not correctly ordered as [%s] (%s -> %s)!", field.getField(), field.getSortDirection(), currentValue, previousValue),
                     currentValue.compareTo(previousValue) < 0);
         }
     }

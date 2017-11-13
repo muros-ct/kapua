@@ -62,6 +62,7 @@ import org.eclipse.kapua.service.user.internal.UserDomain;
 import org.eclipse.kapua.service.user.internal.UserFactoryImpl;
 import org.eclipse.kapua.service.user.internal.UsersJAXBContextProvider;
 import org.eclipse.kapua.test.steps.AbstractKapuaSteps;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,8 +221,8 @@ public class UserServiceSteps extends AbstractKapuaSteps {
             String tmpName = tmpUsr.getName();
             String tmpPwd = tmpUsr.getPassword();
 
-            assertNotNull(tmpName);
-            assertNotNull(tmpPwd);
+            Assert.assertNotNull(tmpName);
+            Assert.assertNotNull(tmpPwd);
 
             UserCreator usrCr = new UserCreatorImpl(account.getId(), tmpName);
             //User tmpUsr = userService.create(usrCr);

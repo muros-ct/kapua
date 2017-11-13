@@ -100,6 +100,7 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import cucumber.runtime.java.guice.ScenarioScoped;
+import org.junit.Assert;
 
 // Implementation of Gherkin steps used in DeviceRegistryI9n.feature scenarios.
 @ScenarioScoped
@@ -158,10 +159,10 @@ public class DeviceServiceSteps extends KapuaTest {
 
         Account tmpAccount = (Account) stepData.get("LastAccount");
 
-        assertNotNull(clientId);
-        assertFalse(clientId.isEmpty());
-        assertNotNull(tmpAccount);
-        assertNotNull(tmpAccount.getId());
+        Assert.assertNotNull(clientId);
+        Assert.assertFalse(clientId.isEmpty());
+        Assert.assertNotNull(tmpAccount);
+        Assert.assertNotNull(tmpAccount.getId());
 
         Device tmpDev;
         List<String> tmpSemParts = new ArrayList<>();
@@ -347,7 +348,7 @@ public class DeviceServiceSteps extends KapuaTest {
             throws KapuaException {
 
         KapuaSecurityUtils.doPrivileged(() -> {
-            assertNotNull(devLst);
+            Assert.assertNotNull(devLst);
 
             Device tmpDevice = null;
             for (CucDevice tmpCDev : devLst) {
@@ -368,8 +369,8 @@ public class DeviceServiceSteps extends KapuaTest {
         DeviceListResult tmpList = new DeviceListResultImpl();
 
         tmpAcc = KapuaLocator.getInstance().getService(AccountService.class).findByName(account);
-        assertNotNull(tmpAcc);
-        assertNotNull(tmpAcc.getId());
+        Assert.assertNotNull(tmpAcc);
+        Assert.assertNotNull(tmpAcc.getId());
 
         tmpDev = deviceRegistryService.findByClientId(tmpAcc.getId(), clientId);
         if (tmpDev != null) {
@@ -424,28 +425,28 @@ public class DeviceServiceSteps extends KapuaTest {
         DeviceListResult deviceList = (DeviceListResult) stepData.get("DeviceList");
         Device device = deviceList.getFirstItem();
 
-        assertEquals(deviceName, device.getClientId());
+        Assert.assertEquals(deviceName, device.getClientId());
     }
 
     @And("^I untag device with \"([^\"]*)\" tag$")
     public void iDeleteTag(String deviceTagName) throws Throwable {
 
         Tag foundTag = (Tag) stepData.get("tag");
-        assertEquals(deviceTagName, foundTag.getName());
+        Assert.assertEquals(deviceTagName, foundTag.getName());
         Device device = (Device) stepData.get("Device");
         stepData.remove("tag");
         stepData.remove("tags");
         Set<KapuaId> tags = new HashSet<>();
         device.setTagIds(tags);
         deviceRegistryService.update(device);
-        assertEquals(device.getTagIds().isEmpty(), true);
+        Assert.assertEquals(device.getTagIds().isEmpty(), true);
     }
 
     @And("^I verify that tag \"([^\"]*)\" is deleted$")
     public void iVerifyTagIsDeleted(String deviceTagName) throws Throwable {
 
         Tag foundTag = (Tag) stepData.get("tag");
-        assertEquals(null, foundTag);
+        Assert.assertEquals(null, foundTag);
     }
 
     @When("^I search for events from device \"(.+)\" in account \"(.+)\"$")
@@ -458,42 +459,42 @@ public class DeviceServiceSteps extends KapuaTest {
         Account tmpAcc;
 
         tmpAcc = KapuaLocator.getInstance().getService(AccountService.class).findByName(account);
-        assertNotNull(tmpAcc);
-        assertNotNull(tmpAcc.getId());
+        Assert.assertNotNull(tmpAcc);
+        Assert.assertNotNull(tmpAcc.getId());
 
         tmpDev = deviceRegistryService.findByClientId(tmpAcc.getId(), clientId);
-        assertNotNull(tmpDev);
-        assertNotNull(tmpDev.getId());
+        Assert.assertNotNull(tmpDev);
+        Assert.assertNotNull(tmpDev.getId());
 
         tmpQuery = new DeviceEventQueryImpl(tmpAcc.getId());
         tmpQuery.setPredicate(attributeIsEqualTo("deviceId", tmpDev.getId()));
         tmpQuery.setSortCriteria(new FieldSortCriteria("receivedOn", FieldSortCriteria.SortOrder.ASCENDING));
         tmpList = deviceEventsService.query(tmpQuery);
 
-        assertNotNull(tmpList);
+        Assert.assertNotNull(tmpList);
         stepData.put("DeviceEventList", tmpList);
     }
 
     @Then("^I find (\\d+) events?$")
     public void checkEventListLength(int cnt) {
-        assertNotNull(stepData.get("DeviceEventList"));
-        assertEquals(cnt, ((DeviceEventListResultImpl) stepData.get("DeviceEventList")).getSize());
+        Assert.assertNotNull(stepData.get("DeviceEventList"));
+        Assert.assertEquals(cnt, ((DeviceEventListResultImpl) stepData.get("DeviceEventList")).getSize());
     }
 
     @Then("^I find (\\d+) devices?$")
     public void checkDeviceListLength(int cnt) {
-        assertNotNull(stepData.get("DeviceList"));
-        assertEquals(cnt, ((DeviceListResultImpl) stepData.get("DeviceList")).getSize());
+        Assert.assertNotNull(stepData.get("DeviceList"));
+        Assert.assertEquals(cnt, ((DeviceListResultImpl) stepData.get("DeviceList")).getSize());
     }
 
     @Then("^The type of the last event is \"(.+)\"$")
     public void checkLastEventType(String type) {
         DeviceEventListResult tmpList;
 
-        assertNotNull(stepData.get("DeviceEventList"));
-        assertNotEquals(0, ((DeviceEventListResultImpl) stepData.get("DeviceEventList")).getSize());
+        Assert.assertNotNull(stepData.get("DeviceEventList"));
+        Assert.assertNotEquals(0, ((DeviceEventListResultImpl) stepData.get("DeviceEventList")).getSize());
         tmpList = (DeviceEventListResultImpl) stepData.get("DeviceEventList");
-        assertEquals(type.trim().toUpperCase(), tmpList.getItem(tmpList.getSize() - 1).getResource().trim().toUpperCase());
+        Assert.assertEquals(type.trim().toUpperCase(), tmpList.getItem(tmpList.getSize() - 1).getResource().trim().toUpperCase());
 
     }
 
@@ -611,13 +612,13 @@ public class DeviceServiceSteps extends KapuaTest {
         if (dev.scopeId != null) {
             tmpScope = dev.getScopeId();
         } else {
-            assertNotNull(tmpAccount);
-            assertNotNull(tmpAccount.getId());
+            Assert.assertNotNull(tmpAccount);
+            Assert.assertNotNull(tmpAccount.getId());
             tmpScope = tmpAccount.getId();
         }
 
-        assertNotNull(dev.clientId);
-        assertNotEquals(0, dev.clientId.length());
+        Assert.assertNotNull(dev.clientId);
+        Assert.assertNotEquals(0, dev.clientId.length());
 
         tmpCr = prepareDefaultDeviceCreator(tmpScope, dev.clientId);
 
@@ -687,9 +688,9 @@ public class DeviceServiceSteps extends KapuaTest {
         tmpCr.setDisplayName("display_name");
         tmpCr.setSerialNumber("serialNumber");
         tmpCr.setModelId("modelId");
-        tmpCr.setImei(String.valueOf(random.nextInt()));
-        tmpCr.setImsi(String.valueOf(random.nextInt()));
-        tmpCr.setIccid(String.valueOf(random.nextInt()));
+        tmpCr.setImei(String.valueOf(KapuaTest.random.nextInt()));
+        tmpCr.setImsi(String.valueOf(KapuaTest.random.nextInt()));
+        tmpCr.setIccid(String.valueOf(KapuaTest.random.nextInt()));
         tmpCr.setBiosVersion("biosVersion");
         tmpCr.setFirmwareVersion("firmwareVersion");
         tmpCr.setOsVersion("osVersion");

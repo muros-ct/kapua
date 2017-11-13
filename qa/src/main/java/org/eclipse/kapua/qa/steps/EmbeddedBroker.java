@@ -12,8 +12,6 @@
 package org.eclipse.kapua.qa.steps;
 
 import static java.time.Duration.ofSeconds;
-import static org.eclipse.kapua.qa.utils.Ports.isPortOpen;
-import static org.eclipse.kapua.qa.utils.Suppressed.withRuntimeException;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -22,6 +20,7 @@ import java.util.Map;
 
 import org.apache.activemq.broker.BrokerFactory;
 import org.apache.activemq.broker.BrokerService;
+import org.eclipse.kapua.qa.utils.Ports;
 import org.eclipse.kapua.qa.utils.Suppressed;
 import org.eclipse.kapua.service.datastore.internal.mediator.DatastoreMediator;
 import org.elasticsearch.common.UUIDs;
@@ -71,7 +70,7 @@ public class EmbeddedBroker {
         try {
             // test if port is already open
 
-            if (isPortOpen(1883)) {
+            if (Ports.isPortOpen(1883)) {
                 throw new IllegalStateException("Broker port is already in use");
             }
 
@@ -103,7 +102,7 @@ public class EmbeddedBroker {
     public void stop() {
         logger.info("Stopping instance ...");
 
-        try (final Suppressed<RuntimeException> s = withRuntimeException()) {
+        try (final Suppressed<RuntimeException> s = Suppressed.withRuntimeException()) {
 
             // close all resources
 
