@@ -80,7 +80,7 @@ jobs:
         - bash <(curl -s https://codecov.io/bash)
     - stage: test
       script:
-        - ./travis.sh $M2_HOME/bin/mvn -B -Dgwt.compiler.localWorkers=2 -Dcommons.db.schema=kapuadb -Dcommons.settings.hotswap=true-Dcucumber.options="--tags @jobs" verify
+        - ./travis.sh $M2_HOME/bin/mvn -B -Dgwt.compiler.localWorkers=2 -Dcommons.db.schema=kapuadb -Dcommons.settings.hotswap=true -Dcucumber.options="--tags @jobs" verify
         - bash <(curl -s https://codecov.io/bash)
     - stage: test
       script:
