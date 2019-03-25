@@ -21,15 +21,13 @@ import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.commons.model.query.predicate.AttributePredicateImpl;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaListResult;
-import org.eclipse.kapua.model.query.predicate.QueryPredicate;
 import org.eclipse.kapua.service.authorization.access.AccessInfo;
-import org.eclipse.kapua.service.authorization.access.AccessInfoFactory;
 import org.eclipse.kapua.service.authorization.access.AccessInfoAttributes;
+import org.eclipse.kapua.service.authorization.access.AccessInfoFactory;
 import org.eclipse.kapua.service.authorization.access.AccessInfoQuery;
 import org.eclipse.kapua.service.authorization.access.AccessInfoService;
 import org.eclipse.kapua.service.authorization.access.AccessPermission;
@@ -95,14 +93,13 @@ public class KapuaAuthorizingRealm extends AuthorizingRealm {
         //
         // Check existence
         if (user == null) {
-            throw new UnknownAccountException();
+            throw new AuthenticationException();
         }
 
         //
         // Get user access infos
         AccessInfoQuery accessInfoQuery = accessInfoFactory.newQuery(user.getScopeId());
-        QueryPredicate predicate = new AttributePredicateImpl<KapuaId>(AccessInfoAttributes.USER_ID, user.getId());
-        accessInfoQuery.setPredicate(predicate);
+        accessInfoQuery.setPredicate(accessInfoQuery.attributePredicate(AccessInfoAttributes.USER_ID, user.getId()));
 
         final KapuaListResult<AccessInfo> accessInfos;
         try {
