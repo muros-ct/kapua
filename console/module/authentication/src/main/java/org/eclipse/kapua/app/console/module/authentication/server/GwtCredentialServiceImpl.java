@@ -16,6 +16,7 @@ import com.extjs.gxt.ui.client.data.PagingLoadConfig;
 import com.extjs.gxt.ui.client.data.PagingLoadResult;
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.app.console.module.api.client.GwtKapuaException;
@@ -213,6 +214,8 @@ public class GwtCredentialServiceImpl extends KapuaRemoteServiceServlet implemen
                 }
             });
             if (user == null) {
+                SecurityUtils.getSubject().logout();
+
                 throw new AuthenticationException();
             }
             username = user.getName();
