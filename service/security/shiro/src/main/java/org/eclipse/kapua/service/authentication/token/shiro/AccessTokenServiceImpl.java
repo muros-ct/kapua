@@ -231,7 +231,7 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
 
                 return AccessTokenDAO.update(em, accessToken);
             } else {
-                return null;
+                throw new KapuaEntityNotFoundException(AccessToken.TYPE, scopeId);
             }
         });
     }
