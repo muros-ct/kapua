@@ -36,13 +36,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @ScenarioScoped
-public class DockerSteps extends  BaseQATests {
+public class DockerSteps extends BaseQATests {
 
     private static final Logger logger = LoggerFactory.getLogger(DockerSteps.class);
 
