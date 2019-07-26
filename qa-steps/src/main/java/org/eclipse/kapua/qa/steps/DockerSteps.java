@@ -31,6 +31,8 @@ import cucumber.api.java.en.Then;
 import cucumber.runtime.java.guice.ScenarioScoped;
 import org.apache.activemq.command.BrokerInfo;
 import org.eclipse.kapua.service.StepData;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,13 +89,80 @@ public class DockerSteps extends BaseQATests {
         logger.info("Creating docker client.");
         try {
             docker = DefaultDockerClient.fromEnv().build();
-            networkConfig = NetworkConfig.builder().name(NETWORK_PREFIX).build();
-            NetworkCreation networkCreation = docker.createNetwork(networkConfig);
-            networkId = networkCreation.id();
-        } catch (DockerException | DockerCertificateException | InterruptedException e) {
+        } catch (DockerCertificateException e) {
             logger.error("Could not connect to docker.");
             throw new RuntimeException("Cannot initialize docker client!", e);
         }
+    }
+
+    @Given("^Create mqtt \"(.*)\" client for broker \"(.*)\" on port (\\d+) with user \"(.*)\" and pass \"(.*)\"$")
+    public void createMqttClient(String clientId, String broker, int port, String user, String pass) {
+        try {
+            BrokerClient client = new BrokerClient(broker, port, clientId, user, pass);
+            stepData.put(clientId, client);
+        } catch (MqttException e) {
+            logger.error("Error creating mqtt client with id " + clientId, e);
+        }
+    }
+
+    @Given("^Connect to mqtt client \"(.*)\"$")
+    public void connectMqttClient(String clientId) {
+        BrokerClient client = (BrokerClient) stepData.get(clientId);
+        try {
+            client.connect();
+        } catch (MqttException e) {
+            logger.error("Unable to connect to mqtt broker with client " + clientId, e);
+            e.printStackTrace();
+        }
+    }
+
+    @Given("^Disconnect mqtt client \"(.*)\"$")
+    public void disconnectMqttClient(String clientId) {
+        BrokerClient client = (BrokerClient) stepData.get(clientId);
+        try {
+            client.disconnect();
+        } catch (MqttException e) {
+            logger.error("Unable to disconnect from mqtt broker with client " + clientId, e);
+        }
+    }
+
+    @Given("^Subscribe mqtt client \"(.*)\" to topic \"(.*)\"$")
+    public void subscribeMqttClient(String clientId, String topic) {
+        BrokerClient client = (BrokerClient) stepData.get(clientId);
+        try {
+            client.subscribe(topic, 1);
+        } catch (MqttException e) {
+            logger.error("Can not subscribe with client " + clientId);
+        }
+    }
+
+    @Then("^Client \"(.*)\" has (\\d+) messages?.*$")
+    public void clientCountMsg(String clientId, int numMsgs) {
+        BrokerClient client = (BrokerClient) stepData.get(clientId);
+        int receivedMsgs = client.getRecivedMsgCnt();
+        Assert.assertEquals(numMsgs, receivedMsgs);
+    }
+
+    @Given("^Publish string \"(.*)\" to topic \"(.*)\" as client \"(.*)\"")
+    public void publishMqttClient(String message, String topic, String clientId) {
+        BrokerClient client = (BrokerClient) stepData.get(clientId);
+        try {
+            client.publish(topic, 1, message);
+        } catch (MqttException e) {
+            logger.error("Can not publish to topic " + topic);
+        }
+    }
+
+    @Given("^Create network$")
+    public void createNetwork() throws DockerException, InterruptedException {
+        networkConfig = NetworkConfig.builder().name(NETWORK_PREFIX).build();
+        NetworkCreation networkCreation = docker.createNetwork(networkConfig);
+        networkId = networkCreation.id();
+    }
+
+    @Given("^Remove network$")
+    public void removeNetwork() throws DockerException, InterruptedException {
+        docker.removeNetwork(networkId);
     }
 
     @Given("^Pull image \"(.*)\"$")
@@ -105,7 +174,7 @@ public class DockerSteps extends BaseQATests {
     public void listImages(String imageName) throws Exception {
         List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(imageName));
         if ((images != null) && (images.size() > 0)) {
-            for (Image image: images) {
+            for (Image image : images) {
                 logger.info("Image: " + image);
             }
         } else {
@@ -114,9 +183,10 @@ public class DockerSteps extends BaseQATests {
     }
 
     @And("^Start DB container with name \"(.*)\"$")
-    public void prepareDBContainer(String name) throws DockerException, InterruptedException {
+    public void startDBContainer(String name) throws DockerException, InterruptedException {
+        logger.info("Starting DB container...");
         ContainerConfig dbConfig = getDbContainerConfig();
-        ContainerCreation dbContainerCreation = docker.createContainer(dbConfig);
+        ContainerCreation dbContainerCreation = docker.createContainer(dbConfig, name);
         String containerId = dbContainerCreation.id();
 
         docker.startContainer(containerId);
@@ -125,29 +195,83 @@ public class DockerSteps extends BaseQATests {
         logger.info("DB container started: {}", containerId);
     }
 
+    @And("^Start ES container with name \"(.*)\"$")
+    public void startESContainer(String name) throws DockerException, InterruptedException {
+        logger.info("Starting ES container...");
+        ContainerConfig esConfig = getEsContainerConfig();
+        ContainerCreation esContainerCreation = docker.createContainer(esConfig, name);
+        String containerId = esContainerCreation.id();
+
+        docker.startContainer(containerId);
+        docker.connectToNetwork(containerId, networkId);
+        containerMap.put("es", containerId);
+        logger.info("ES container started: {}", containerId);
+    }
+
+    @And("^Start EventBroker container with name \"(.*)\"$")
+    public void startEBContainer(String name) throws DockerException, InterruptedException {
+        logger.info("Starting EventBroker container...");
+        ContainerConfig ebConfig = getEventBrokerContainerConfig();
+        ContainerCreation ebContainerCreation = docker.createContainer(ebConfig, name);
+        String containerId = ebContainerCreation.id();
+
+        docker.startContainer(containerId);
+        docker.connectToNetwork(containerId, networkId);
+        containerMap.put(name, containerId);
+        logger.info("EventBroker container started: {}", containerId);
+    }
+
+    @And("^Start Message Broker container$")
+    public void startEBContainer(List<BrokerConfigData> brokerConfigDataList) throws DockerException, InterruptedException {
+        BrokerConfigData bcData = brokerConfigDataList.get(0);
+        logger.info("Starting Message Broker container {}...", bcData.getName());
+        ContainerConfig mbConfig = getBrokerContainerConfig(
+                bcData.getBrokerAddress(), bcData.getBrokerIp(), bcData.getClusterName(), null,
+                bcData.getMqttPort(), bcData.getMqttHostPort(), bcData.getMqttsPort(), bcData.getMqttsHostPort(),
+                bcData.getWebPort(), bcData.getWebHostPort(), bcData.getDebugPort(), bcData.getDebugHostPort(),
+                bcData.getBrokerInternalDebugPort(), bcData.getDockerImage());
+        ContainerCreation mbContainerCreation = docker.createContainer(mbConfig, bcData.getName());
+        String containerId = mbContainerCreation.id();
+
+        docker.startContainer(containerId);
+        docker.connectToNetwork(containerId, networkId);
+        containerMap.put(bcData.getName(), containerId);
+        logger.info("Message Broker {} container started: {}", bcData.getName(), containerId);
+    }
+
     @Then("^Stop container with name \"(.*)\"$")
-    public void stopDBContainer(String name) throws DockerException, InterruptedException {
-        String containerId = containerMap.get("db");
+    public void stopContainer(String name) throws DockerException, InterruptedException {
+        logger.info("Stopping container {}...", name);
+        String containerId = containerMap.get(name);
         docker.stopContainer(containerId, 3);
+        logger.info("Container {} stopped.", name);
+    }
+
+    @Then("^Remove container with name \"(.*)\"$")
+    public void removeContainer(String name) throws DockerException, InterruptedException {
+        logger.info("Removing container {}...", name);
+        String containerId = containerMap.get(name);
+        docker.removeContainer(containerId);
+        logger.info("Container {} removed.", name);
     }
 
     /**
-     * Creation of docker contaier configuration for broker.
+     * Creation of docker container configuration for broker.
      *
      * @param brokerAddr
      * @param brokerIp
      * @param clusterName
      * @param controlMessageForwarding
-     * @param mqttPort mqtt port on docker
-     * @param mqttHostPort mqtt port on docker host
-     * @param mqttsPort mqtts port on docker
-     * @param mqttsHostPort mqtts port on docker host
-     * @param webPort web port on docker
-     * @param webHostPort web port on docker host
-     * @param debugPort debug port on docker
-     * @param debugHostPort debug port on docker host
+     * @param mqttPort                 mqtt port on docker
+     * @param mqttHostPort             mqtt port on docker host
+     * @param mqttsPort                mqtts port on docker
+     * @param mqttsHostPort            mqtts port on docker host
+     * @param webPort                  web port on docker
+     * @param webHostPort              web port on docker host
+     * @param debugPort                debug port on docker
+     * @param debugHostPort            debug port on docker host
      * @param brokerInternalDebugPort
-     * @param dockerImage full name of image (e.g. "kapua/kapua-broker:1.1.0-SNAPSHOT")
+     * @param dockerImage              full name of image (e.g. "kapua/kapua-broker:1.1.0-SNAPSHOT")
      * @return Container configuration for specific boroker instance
      */
     private ContainerConfig getBrokerContainerConfig(String brokerAddr, String brokerIp,
@@ -161,9 +285,10 @@ public class DockerSteps extends BaseQATests {
             String dockerImage) {
 
         final Map<String, List<PortBinding>> portBindings = new HashMap<>();
+        addHostPort("0.0.0.0", portBindings, mqttPort, mqttHostPort);
         addHostPort("0.0.0.0", portBindings, mqttsPort, mqttsHostPort);
-        addHostPort("0.0.0.0", portBindings,webPort, webHostPort);
-        addHostPort("0.0.0.0", portBindings, debugPort,debugHostPort);
+        addHostPort("0.0.0.0", portBindings, webPort, webHostPort);
+        addHostPort("0.0.0.0", portBindings, debugPort, debugHostPort);
 
         final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings).build();
 
@@ -194,10 +319,10 @@ public class DockerSteps extends BaseQATests {
         }
 
         String[] ports = {
-            String.valueOf(mqttPort),
-            String.valueOf(mqttsPort),
-            String.valueOf(webPort),
-            String.valueOf(debugPort)
+                String.valueOf(mqttPort),
+                String.valueOf(mqttsPort),
+                String.valueOf(webPort),
+                String.valueOf(debugPort)
         };
 
         return ContainerConfig.builder()
@@ -223,10 +348,10 @@ public class DockerSteps extends BaseQATests {
                 .hostConfig(hostConfig)
                 .exposedPorts(String.valueOf(dbPort))
                 .env(
-                    "DATABASE=kapuadb",
-                    "DB_USER=kapua",
-                    "DB_PASSWORD=kapua",
-                    "DB_PORT_3306_TCP_PORT=3306"
+                        "DATABASE=kapuadb",
+                        "DB_USER=kapua",
+                        "DB_PASSWORD=kapua",
+                        "DB_PORT_3306_TCP_PORT=3306"
                 )
                 .image("kapua/kapua-sql:1.1.0-SNAPSHOT")
                 .build();
@@ -280,10 +405,10 @@ public class DockerSteps extends BaseQATests {
     /**
      * Add docker port to host port mapping.
      *
-     * @param host ip address of host
+     * @param host         ip address of host
      * @param portBindings list ob bindings that gets updated
-     * @param port docker port
-     * @param hostPort port on host
+     * @param port         docker port
+     * @param hostPort     port on host
      */
     private void addHostPort(String host, Map<String, List<PortBinding>> portBindings,
             int port, int hostPort) {

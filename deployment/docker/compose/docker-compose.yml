@@ -75,3 +75,13 @@ services:
       - KAPUA_KEY_PASSWORD
       - KAPUA_KEYSTORE
       - KAPUA_KEYSTORE_PASSWORD
+  kura:
+    image: eclipse/kura
+    ports:
+      - 8088:8080
+    depends_on:
+      -  broker
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
